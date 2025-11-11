@@ -1,410 +1,1433 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Family Tree v2 — Interactive (Static)</title>
-<style>
-  :root{
-    --panel-w:180px; --panel-h:260px; /* portrait: taller */
-    --img-h:60%; --info-h:40%;
-    --accent:#6aa84f;
-    --bg-forest: linear-gradient(180deg,#072012 0%, #0b3a1f 40%, #062816 100%);
-    --bg-autumn: linear-gradient(180deg,#2b0b00 0%, #7a2f05 40%, #f3c47a 100%);
-    --bg-dawn: linear-gradient(180deg,#0b3a59, #6ec1e4 40%, #fbe8a6);
-    --bg-plain: #121212;
-    font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial;
-  }
-  html,body{height:100%;margin:0;background:#0b1220;color:#eee;}
-  .header{display:flex;align-items:center;gap:12px;padding:12px;background:rgba(0,0,0,0.45);backdrop-filter:blur(4px);}
-  .btn{background:#222;border:1px solid #333;padding:8px 10px;border-radius:8px;color:#ddd;cursor:pointer;}
-  .btn.primary{background:linear-gradient(180deg,#3fb76a,#28a05a);color:#072;border:none;}
-  .toolbar{display:flex;gap:8px;align-items:center;}
-  .canvas{position:relative;flex:1;overflow:auto;height:calc(100vh - 80px);background:var(--bg-forest);}
-  .workspace{position:relative;width:2200px;height:1500px;}
-  svg.links{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
-  .node{position:absolute;width:var(--panel-w);height:var(--panel-h);box-shadow:0 8px 24px rgba(0,0,0,0.6);border-radius:14px;padding:0;box-sizing:border-box;cursor:grab;user-select:none;border:3px solid rgba(255,255,255,0.04);background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06));overflow:hidden;}
-  .node .portrait{height:var(--img-h);display:flex;align-items:center;justify-content:center;background:#eee}
-  .node .portrait img{width:100%;height:100%;object-fit:cover}
-  .node .info{height:var(--info-h);padding:10px;display:flex;flex-direction:column;gap:6px}
-  .name{font-weight:800;font-size:15px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .meta{font-size:12px;color:#cfcfcf}
-  .node .actions{margin-top:auto;display:flex;gap:6px}
-  .chip{padding:6px 8px;border-radius:8px;background:rgba(255,255,255,0.03);font-size:12px;border:1px solid rgba(255,255,255,0.03);cursor:pointer}
-  .inspector{position:fixed;right:18px;bottom:18px;width:360px;background:rgba(255,255,255,0.98);color:#111;padding:14px;border-radius:12px;box-shadow:0 8px 30px rgba(2,6,23,0.4);z-index:60}
-  .inspector h3{margin:0 0 8px 0;font-size:18px}
-  label{display:block;font-size:12px;color:#333;margin-top:8px}
-  input[type="text"], select, textarea{width:100%;padding:8px;border-radius:8px;border:1px solid #ddd;box-sizing:border-box;font-size:14px}
-  textarea{min-height:80px}
-  .color-swatch{width:32px;height:28px;border-radius:8px;border:2px solid transparent;cursor:pointer;display:inline-block;margin-right:6px}
-  .sw-active{outline:3px solid #7b61ff;outline-offset:2px}
-  .bg-picker{margin-left:auto;display:flex;gap:6px;align-items:center}
-  .tiny{font-size:12px;padding:6px 8px}
-  .link-button{background:linear-gradient(180deg,#ffd27a,#ffb347);color:#3a2100;border:none}
-  .delete-button{background:linear-gradient(180deg,#ff9a9a,#ff6b6b);color:#fff;border:none}
-  .node.green{border-color:#2f8f4a}
-  .node.brown{border-color:#8b5a2b}
-  .node.red{border-color:#b63a3a}
-  .node.yellow{border-color:#9b7b1a}
-  .hover-card{position:absolute;pointer-events:none;background:rgba(255,255,255,0.97);color:#111;padding:8px;border-radius:8px;box-shadow:0 8px 30px rgba(2,6,23,0.35);z-index:80;width:240px;display:none}
-  .highlight-main{box-shadow:0 0 0 6px rgba(60,130,200,0.12), 0 12px 30px rgba(0,0,0,0.5)}
-  .highlight-personal{box-shadow:0 0 0 6px rgba(80,200,120,0.12), 0 12px 30px rgba(0,0,0,0.5)}
-  .link-type-parent{stroke:#d6a96a;stroke-width:4;fill:none}
-  .link-type-spouse{stroke:#8ab6ff;stroke-width:3;stroke-dasharray:6 6;fill:none}
-  .footer-note{font-size:12px;color:#bbb;padding:8px 12px;background:rgba(0,0,0,0.35)}
-  .controls-row{display:flex;gap:6px;align-items:center}
-  .small{font-size:12px;padding:6px 8px}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Tree App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            background: #0a0a0a;
+            overflow: hidden;
+        }
+
+        body.light-theme {
+            background: #f5f5f5;
+        }
+
+        #toolbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: linear-gradient(135deg, #1a120d 0%, #0d0a08 100%);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            padding: 0 30px;
+            gap: 20px;
+            z-index: 1000;
+            border-bottom: 3px solid #8b4513;
+        }
+
+        body.light-theme #toolbar {
+            background: linear-gradient(135deg, #8b6914 0%, #6b5410 100%);
+            border-bottom: 3px solid #d4af37;
+        }
+
+        .toolbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-right: auto;
+        }
+
+        .toolbar-icon {
+            font-size: 40px;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5));
+        }
+
+        .toolbar-title {
+            font-size: 28px;
+            color: #d4af37;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            letter-spacing: 2px;
+        }
+
+        .toolbar-section {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .theme-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 8px 12px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 10px;
+            border: 2px solid #8b4513;
+        }
+
+        body.light-theme .theme-selector {
+            background: rgba(255,255,255,0.4);
+        }
+
+        .theme-selector label {
+            color: #d4af37;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        body.light-theme .theme-selector label {
+            color: #2d1810;
+        }
+
+        .theme-selector select {
+            padding: 6px 12px;
+            border: 2px solid #8b4513;
+            border-radius: 6px;
+            background: rgba(0,0,0,0.6);
+            color: #d4af37;
+            font-family: Georgia, serif;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        body.light-theme .theme-selector select {
+            background: rgba(255,255,255,0.9);
+            color: #2d1810;
+        }
+
+        .zoom-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 8px 12px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 10px;
+            border: 2px solid #8b4513;
+        }
+
+        body.light-theme .zoom-controls {
+            background: rgba(255,255,255,0.4);
+        }
+
+        .zoom-controls label {
+            color: #d4af37;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        body.light-theme .zoom-controls label {
+            color: #2d1810;
+        }
+
+        .zoom-buttons {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .zoom-btn {
+            width: 36px;
+            height: 36px;
+            border: 2px solid #8b4513;
+            background: linear-gradient(135deg, #228b22 0%, #1a6b1a 100%);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 20px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+        }
+
+        .zoom-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(34, 139, 34, 0.6);
+        }
+
+        .zoom-btn:active {
+            transform: translateY(0);
+        }
+
+        .zoom-level {
+            color: #d4af37;
+            font-size: 14px;
+            font-weight: bold;
+            min-width: 55px;
+            text-align: center;
+        }
+
+        body.light-theme .zoom-level {
+            color: #2d1810;
+        }
+
+        .btn {
+            padding: 14px 24px;
+            border: 2px solid transparent;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Georgia', serif;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #228b22 0%, #1a6b1a 100%);
+            color: #fff;
+            border-color: #2fa02f;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2fa02f 0%, #228b22 100%);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #8b6914 0%, #6b5410 100%);
+            color: #fff;
+            border-color: #a0791a;
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #a0791a 0%, #8b6914 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #8b2500 0%, #6b1d00 100%);
+            color: #fff;
+            border-color: #a03000;
+        }
+
+        .btn.active {
+            background: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
+            color: #2d1810;
+            border-color: #f4d03f;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.6);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 30px rgba(212, 175, 55, 0.6); }
+            50% { box-shadow: 0 0 50px rgba(212, 175, 55, 0.8); }
+        }
+
+        #workspace {
+            position: fixed;
+            top: 80px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            overflow: hidden;
+            cursor: grab;
+        }
+
+        #workspace.panning {
+            cursor: grabbing;
+        }
+
+        #workspace::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        #workspace::-webkit-scrollbar-track {
+            background: #0a0a0a;
+        }
+
+        body.light-theme #workspace::-webkit-scrollbar-track {
+            background: #e0e0e0;
+        }
+
+        #workspace::-webkit-scrollbar-thumb {
+            background: #8b4513;
+            border-radius: 6px;
+        }
+
+        #canvasWrapper {
+            transform-origin: 0 0;
+            transition: transform 0.1s ease-out;
+        }
+
+        #canvas {
+            position: relative;
+            width: 4000px;
+            height: 3000px;
+            background: linear-gradient(180deg, #072012 0%, #0b3a1f 40%, #062816 100%);
+            background-image: 
+                repeating-linear-gradient(0deg, transparent, transparent 49px, rgba(139, 69, 19, 0.05) 49px, rgba(139, 69, 19, 0.05) 50px),
+                repeating-linear-gradient(90deg, transparent, transparent 49px, rgba(139, 69, 19, 0.05) 49px, rgba(139, 69, 19, 0.05) 50px);
+        }
+
+        body.light-theme #canvas {
+            background: linear-gradient(135deg, #f5f5dc 0%, #e8dcc0 100%);
+        }
+
+        svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .node {
+            position: absolute;
+            width: 240px;
+            min-height: 160px;
+            background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+            border-radius: 16px;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.8), inset 0 2px 0 rgba(255,255,255,0.1);
+            padding: 20px;
+            cursor: move;
+            transition: transform 0.3s, box-shadow 0.3s;
+            z-index: 10;
+            border: 4px solid;
+        }
+
+        body.light-theme .node {
+            background: linear-gradient(135deg, #f5f5dc 0%, #e8dcc0 100%);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.3), inset 0 2px 0 rgba(255,255,255,0.5);
+        }
+
+        .node::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%);
+            pointer-events: none;
+        }
+
+        .node:hover {
+            transform: scale(1.08);
+            box-shadow: 0 16px 40px rgba(0,0,0,0.9), inset 0 2px 0 rgba(255,255,255,0.1);
+            z-index: 100;
+        }
+
+        body.light-theme .node:hover {
+            box-shadow: 0 16px 40px rgba(0,0,0,0.4), inset 0 2px 0 rgba(255,255,255,0.5);
+        }
+
+        .node.alive {
+            border-color: #228b22;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.8), 0 0 30px rgba(34, 139, 34, 0.5);
+        }
+
+        .node.deceased {
+            border-color: #8b4513;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.8), 0 0 30px rgba(139, 69, 19, 0.4);
+        }
+
+        .node-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #888;
+            margin: 0 auto 16px;
+            overflow: hidden;
+            border: 4px solid #8b4513;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.6), inset 0 2px 4px rgba(0,0,0,0.4);
+        }
+
+        body.light-theme .node-avatar {
+            background: linear-gradient(135deg, #8b7355 0%, #6b5943 100%);
+            color: #f5f5dc;
+        }
+
+        .node-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .node-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: #d4af37;
+            margin-bottom: 8px;
+            word-wrap: break-word;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        body.light-theme .node-name {
+            color: #2d1810;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
+        }
+
+        .node-meta {
+            font-size: 14px;
+            color: #aaa;
+            margin-bottom: 8px;
+            text-align: center;
+            font-style: italic;
+        }
+
+        body.light-theme .node-meta {
+            color: #4a3520;
+        }
+
+        .node-notes {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 12px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        body.light-theme .node-notes {
+            color: #5a4530;
+        }
+
+        .node-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .chip {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            font-weight: bold;
+            transition: all 0.3s;
+            font-family: 'Georgia', serif;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+        }
+
+        .chip:hover {
+            transform: scale(1.15);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.6);
+        }
+
+        .chip:active {
+            transform: scale(1.05);
+        }
+
+        .chip-edit {
+            background: linear-gradient(135deg, #4169e1 0%, #2e4d9e 100%);
+            color: white;
+            border-color: #5a7fe1;
+        }
+
+        .chip-link {
+            background: linear-gradient(135deg, #228b22 0%, #1a6b1a 100%);
+            color: white;
+            border-color: #2fa02f;
+        }
+
+        .chip-unlink {
+            background: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
+            color: #2d1810;
+            border-color: #f4d03f;
+        }
+
+        .chip-delete {
+            background: linear-gradient(135deg, #8b2500 0%, #6b1d00 100%);
+            color: white;
+            border-color: #a03000;
+        }
+
+        #hoverCard {
+            position: fixed;
+            width: 300px;
+            background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+            border-radius: 16px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.9), 0 0 0 3px #8b4513;
+            padding: 20px;
+            display: none;
+            z-index: 9999;
+            pointer-events: none;
+            border: 4px solid #8b4513;
+        }
+
+        body.light-theme #hoverCard {
+            background: linear-gradient(135deg, #f5f5dc 0%, #e8dcc0 100%);
+        }
+
+        .hover-content {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+
+        .hover-avatar {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+            flex-shrink: 0;
+            overflow: hidden;
+            border: 3px solid #8b4513;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+        }
+
+        body.light-theme .hover-avatar {
+            background: linear-gradient(135deg, #8b7355 0%, #6b5943 100%);
+        }
+
+        .hover-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .hover-info {
+            flex: 1;
+        }
+
+        .hover-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 6px;
+            color: #d4af37;
+        }
+
+        body.light-theme .hover-name {
+            color: #2d1810;
+        }
+
+        .hover-meta {
+            font-size: 14px;
+            color: #aaa;
+            margin-bottom: 4px;
+            font-style: italic;
+        }
+
+        body.light-theme .hover-meta {
+            color: #4a3520;
+        }
+
+        .hover-notes {
+            font-size: 13px;
+            color: #888;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 2px solid #333;
+        }
+
+        body.light-theme .hover-notes {
+            color: #5a4530;
+            border-top: 2px solid #c9b896;
+        }
+
+        #inspector {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            width: 380px;
+            max-height: calc(100vh - 120px);
+            background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+            border-radius: 16px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.9), 0 0 0 3px #8b4513;
+            padding: 28px;
+            display: none;
+            z-index: 1001;
+            overflow-y: auto;
+            border: 4px solid #8b4513;
+        }
+
+        body.light-theme #inspector {
+            background: linear-gradient(135deg, #f5f5dc 0%, #e8dcc0 100%);
+        }
+
+        #inspector::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        #inspector::-webkit-scrollbar-track {
+            background: #0a0a0a;
+            border-radius: 5px;
+        }
+
+        body.light-theme #inspector::-webkit-scrollbar-track {
+            background: #d4c5a9;
+        }
+
+        #inspector::-webkit-scrollbar-thumb {
+            background: #8b4513;
+            border-radius: 5px;
+        }
+
+        #inspector h3 {
+            margin-bottom: 24px;
+            color: #d4af37;
+            font-size: 26px;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            border-bottom: 3px solid #8b4513;
+            padding-bottom: 12px;
+        }
+
+        body.light-theme #inspector h3 {
+            color: #2d1810;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 15px;
+            font-weight: bold;
+            color: #d4af37;
+            margin-bottom: 8px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        body.light-theme .form-group label {
+            color: #2d1810;
+            text-shadow: none;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #8b4513;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: Georgia, serif;
+            background: rgba(0,0,0,0.5);
+            color: #d4af37;
+            transition: all 0.3s;
+        }
+
+        body.light-theme .form-group input,
+        body.light-theme .form-group select,
+        body.light-theme .form-group textarea {
+            background: rgba(255,255,255,0.9);
+            color: #2d1810;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #228b22;
+            box-shadow: 0 0 15px rgba(34, 139, 34, 0.5);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .links-list {
+            margin: 24px 0;
+            padding: 16px;
+            background: rgba(139, 69, 19, 0.2);
+            border-radius: 12px;
+            border: 3px solid #8b4513;
+        }
+
+        .links-list h4 {
+            color: #d4af37;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        body.light-theme .links-list h4 {
+            color: #2d1810;
+        }
+
+        .link-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            border: 2px solid #333;
+            color: #aaa;
+        }
+
+        body.light-theme .link-item {
+            background: rgba(255,255,255,0.7);
+            border: 2px solid #d4c5a9;
+            color: #2d1810;
+        }
+
+        .link-item button {
+            padding: 6px 14px;
+            background: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
+            color: #2d1810;
+            border: 2px solid #f4d03f;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .link-item button:hover {
+            transform: scale(1.15);
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.6);
+        }
+
+        .inspector-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .inspector-buttons button {
+            flex: 1;
+        }
+
+        .link-path {
+            fill: none;
+            stroke-width: 4;
+            filter: drop-shadow(0 3px 6px rgba(0,0,0,0.5));
+        }
+
+        .link-parent {
+            stroke: #8b4513;
+        }
+
+        .link-spouse {
+            stroke: #228b22;
+            stroke-dasharray: 8, 8;
+        }
+
+        #linkingIndicator {
+            position: fixed;
+            top: 95px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
+            color: #2d1810;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-weight: bold;
+            display: none;
+            z-index: 1002;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.6), 0 0 30px rgba(212, 175, 55, 0.5);
+            border: 3px solid #f4d03f;
+            font-size: 18px;
+            animation: pulse 2s infinite;
+        }
+
+        .node::after {
+            content: '🍂';
+            position: absolute;
+            top: -18px;
+            right: -18px;
+            font-size: 24px;
+            opacity: 0.4;
+        }
+    </style>
 </head>
 <body>
-<div class="header">
-  <strong>Family Tree v2</strong>
-  <div class="toolbar">
-    <button class="btn primary" id="addNodeBtn">+ Add Node</button>
-    <button class="btn" id="linkModeBtn">Link Mode</button>
-    <button class="btn" id="unlinkModeBtn">Unlink Mode</button>
-    <button class="btn" id="exportBtn">Export Backup</button>
-    <label class="btn small" title="Import JSON"><input id="importFile" class="file-input" type="file" accept="application/json"> Import</label>
-    <label class="btn small" title="Auto backup to Downloads"><input type="checkbox" id="autoBackupChk"> Auto Backup</label>
-    <div class="bg-picker topbar-right">
-      <label class="tiny" for="bgSelect">Background</label>
-      <select id="bgSelect" class="tiny">
-        <option value="forest">Forest (green)</option>
-        <option value="autumn">Autumn (brown)</option>
-        <option value="dawn">Dawn (soft)</option>
-        <option value="plain">Plain (dark)</option>
-      </select>
-    </div>
-  </div>
-</div>
-
-<div class="canvas" id="canvas">
-  <div class="workspace" id="workspace">
-    <svg class="links" id="svg"></svg>
-  </div>
-</div>
-
-<div id="inspector" class="inspector" style="display:none">
-  <h3 id="ins-title">Edit Person</h3>
-  <label>Name<input id="in-name" type="text"></label>
-  <label>Gender<select id="in-gender"><option value="unspecified">unspecified</option><option value="male">male</option><option value="female">female</option><option value="non-binary">non-binary</option></select></label>
-  <div style="display:flex;gap:8px">
-    <label style="flex:1">Status<select id="in-status"><option value="alive">alive</option><option value="deceased">deceased</option></select></label>
-    <label style="flex:1">Age<input id="in-age" type="text"></label>
-  </div>
-  <label>Notes<textarea id="in-notes"></textarea></label>
-  <label>Theme</label>
-  <div id="colorRow" style="display:flex;align-items:center">
-    <div class="color-swatch" id="sw-green" title="green" style="background:#d1fae5"></div>
-    <div class="color-swatch" id="sw-brown" title="brown" style="background:#f7edd1"></div>
-    <div class="color-swatch" id="sw-red" title="red" style="background:#fee2e2"></div>
-    <div class="color-swatch" id="sw-yellow" title="yellow" style="background:#fef9c3"></div>
-  </div>
-  <label>Avatar (jpg/png)</label>
-  <input id="in-avatar" type="file" accept="image/*">
-  <div style="display:flex;gap:8px;margin-top:10px">
-    <button class="btn" id="doneBtn">Done</button>
-    <button class="btn link-button" id="finishLinkBtn">Finish Link</button>
-    <button class="btn delete-button" id="deleteBtn">Delete</button>
-  </div>
-
-  <div style="margin-top:10px;border-top:1px solid #eee;padding-top:10px">
-    <div class="controls-row">
-      <button class="btn small" id="addToMainBtn">Add to Main Family</button>
-      <button class="btn small" id="addToPersonalBtn">Add to Personal Family</button>
-    </div>
-    <div style="margin-top:8px" class="controls-row">
-      <button class="btn small" id="showMainBtn">Show Main Family</button>
-      <button class="btn small" id="showPersonalBtn">Show Personal Family</button>
-      <button class="btn small" id="clearHighlightBtn">Clear Highlight</button>
-    </div>
-    <div style="margin-top:8px;font-size:12px;color:#666">Links for this person:</div>
-    <div id="linksList" style="margin-top:6px;display:flex;flex-direction:column;gap:6px"></div>
-  </div>
-
-  <div class="note">Tip: Double-click empty space to add node. Drag nodes to reposition. Double-click a node to start linking (choose parent/child or spouse in prompt), or use Link Mode and click source then target.</div>
-</div>
-
-<div id="hoverCard" class="hover-card"></div>
-
-<div class="footer-note">Hybrid Save Mode: auto-saves to browser. Use Export Backup to download JSON or enable Auto Backup to periodically download a backup file.</div>
-
-<script>
-// Data model and persistence (Hybrid Save Mode)
-let nodes = JSON.parse(localStorage.getItem('ft_nodes')||'[]');
-let links = JSON.parse(localStorage.getItem('ft_links')||'[]'); // links: {id, from, to, type:'parent'|'spouse'}
-let groups = JSON.parse(localStorage.getItem('ft_groups')||'{}'); // named groups if user wants persistent grouping
-let settings = JSON.parse(localStorage.getItem('ft_settings')||'{}');
-let selectedId = null;
-let mode = 'select'; // 'select', 'linking', 'unlinking'
-let linkFrom = null;
-let autoBackupTimer = null;
-const workspace = document.getElementById('workspace');
-const svg = document.getElementById('svg');
-const canvas = document.getElementById('canvas');
-const hoverCard = document.getElementById('hoverCard');
-
-function saveLocal(){
-  localStorage.setItem('ft_nodes', JSON.stringify(nodes));
-  localStorage.setItem('ft_links', JSON.stringify(links));
-  localStorage.setItem('ft_groups', JSON.stringify(groups));
-  localStorage.setItem('ft_settings', JSON.stringify(settings));
-}
-// Auto backup: download file to Downloads when enabled
-function autoBackupOnce(){
-  const payload = {nodes,links,groups,settings,ts:new Date().toISOString()};
-  const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href=url; a.download = 'family_data_backup_'+(new Date().toISOString().slice(0,19).replace(/:/g,'-'))+'.json'; a.click(); URL.revokeObjectURL(url);
-}
-function ensureAutoBackupTimer(){
-  if(document.getElementById('autoBackupChk').checked){
-    if(autoBackupTimer) clearInterval(autoBackupTimer);
-    autoBackupTimer = setInterval(autoBackupOnce, 1000*60*5); // every 5 minutes
-  } else {
-    if(autoBackupTimer) { clearInterval(autoBackupTimer); autoBackupTimer = null; }
-  }
-}
-
-// Utils
-function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
-function findNode(id){ return nodes.find(n=>n.id===id); }
-function saveAndRender(){ saveLocal(); render(); if(document.getElementById('autoBackupChk') && document.getElementById('autoBackupChk').checked) autoBackupOnce(); }
-
-// Rendering
-function render(){
-  workspace.querySelectorAll('.node').forEach(n=>n.remove());
-  svg.innerHTML='';
-  // draw links (parent links and spouse links)
-  links.forEach(l=>{
-    const from = findNode(l.from); const to = findNode(l.to);
-    if(!from||!to) return;
-    if(l.type==='parent'){
-      const d = pathForParent(from,to);
-      const path = document.createElementNS('http://www.w3.org/2000/svg','path');
-      path.setAttribute('d', d); path.classList.add('link-type-parent');
-      svg.appendChild(path);
-    } else if(l.type==='spouse'){
-      const d = pathForSpouse(from,to);
-      const path = document.createElementNS('http://www.w3.org/2000/svg','path');
-      path.setAttribute('d', d); path.classList.add('link-type-spouse');
-      svg.appendChild(path);
-    }
-  });
-  // nodes
-  nodes.forEach(n=>{
-    const el = document.createElement('div');
-    el.className = 'node '+(n.color||'green');
-    el.style.left = n.x + 'px';
-    el.style.top = n.y + 'px';
-    el.dataset.id = n.id;
-    el.innerHTML = `
-      <div class="portrait">${n.img?'<img src="'+n.img+'">':'<div style="padding:12px;color:#666">No Image</div>'}</div>
-      <div class="info">
-        <div class="name">${escapeHtml(n.name||'New Person')}</div>
-        <div class="meta">${escapeHtml(n.gender||'')} • ${n.alive? 'Alive' : ('Deceased • age: '+(n.age||'?'))}</div>
-        <div style="font-size:12px;color:#c0c0c0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(n.notes||'')}</div>
-        <div class="actions">
-          <div class="chip" data-action="edit">Edit</div>
-          <div class="chip" data-action="link">Link</div>
-          <div class="chip" data-action="unlink">Unlink</div>
-          <div class="chip" data-action="del" style="background:rgba(255,60,60,0.12)">Delete</div>
+    <div id="toolbar">
+        <div class="toolbar-brand">
+            <div class="toolbar-icon">🌳</div>
+            <div class="toolbar-title">Family Tree</div>
         </div>
-      </div>
-    `;
-    // events
-    el.addEventListener('pointerdown', e=> startDrag(e,n));
-    el.addEventListener('dblclick', e=>{ e.stopPropagation(); startLink(n.id); });
-    el.addEventListener('click', e=>{
-      const action = e.target.dataset.action;
-      if(action==='edit') openInspector(n.id);
-      else if(action==='link') startLink(n.id);
-      else if(action==='unlink') startUnlink(n.id);
-      else if(action==='del') { deleteNode(n.id); saveAndRender(); }
-      else openInspector(n.id);
-    });
-    // hover show card
-    el.addEventListener('mouseenter', e=> showHover(n,e));
-    el.addEventListener('mousemove', e=> moveHover(e));
-    el.addEventListener('mouseleave', e=> hideHover());
-    workspace.appendChild(el);
-  });
-}
-// path calculation: parent link should go from bottom center of parent to top center of child, with curve
-function pathForParent(parent, child){
-  const x1 = parent.x + 90;
-  const y1 = parent.y + 260;
-  const x2 = child.x + 90;
-  const y2 = child.y;
-  const cx = (x1 + x2)/2;
-  const dy = Math.max(80, Math.abs(x2-x1)*0.5);
-  const controlY = Math.min(y1,y2) - dy;
-  return `M ${x1} ${y1} Q ${cx} ${controlY} ${x2} ${y2}`;
-}
-// spouse link: short curved line between centers
-function pathForSpouse(a,b){
-  const x1 = a.x + 90; const y1 = a.y + 30;
-  const x2 = b.x + 90; const y2 = b.y + 30;
-  const cx = (x1+x2)/2; const cy = (y1+y2)/2 - 30;
-  return `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`;
-}
+        
+        <div class="toolbar-section">
+            <button class="btn btn-primary" onclick="app.addNode()">+ Add Person</button>
+            <button class="btn btn-secondary" id="linkModeBtn" onclick="app.toggleLinkMode()">Link Mode</button>
+        </div>
 
-// Dragging logic
-let dragState = null;
-function startDrag(e,node){
-  e.preventDefault();
-  dragState = {id:node.id, startX:e.clientX, startY:e.clientY, origX:node.x, origY:node.y};
-  document.addEventListener('pointermove', onDrag);
-  document.addEventListener('pointerup', endDrag);
-}
-function onDrag(e){
-  if(!dragState) return;
-  const dx = e.clientX - dragState.startX; const dy = e.clientY - dragState.startY;
-  const node = findNode(dragState.id);
-  node.x = Math.max(0, dragState.origX + dx); node.y = Math.max(0, dragState.origY + dy);
-  render();
-}
-function endDrag(e){
-  dragState = null;
-  saveAndRender();
-  document.removeEventListener('pointermove', onDrag);
-  document.removeEventListener('pointerup', endDrag);
-}
+        <div class="toolbar-section">
+            <div class="theme-selector">
+                <label>Background</label>
+                <select id="bgSelect" onchange="app.changeBackground(this.value)">
+                    <option value="forest">🌲 Forest</option>
+                    <option value="autumn">🍂 Autumn</option>
+                    <option value="dawn">🌅 Dawn</option>
+                    <option value="midnight">🌙 Midnight</option>
+                </select>
+            </div>
 
-// Node operations
-function addNode(x=200,y=80){
-  const n = { id:uid(), name:'New Person', x, y, img:null, gender:'unspecified', alive:true, age:'', notes:'', color:'green', groups:[] };
-  nodes.push(n); saveAndRender(); openInspector(n.id);
-}
-function deleteNode(id){
-  nodes = nodes.filter(n=>n.id!==id);
-  links = links.filter(l=>l.from!==id && l.to!==id);
-  saveAndRender();
-}
+            <div class="theme-selector">
+                <label>Theme</label>
+                <select id="themeSelect" onchange="app.changeTheme(this.value)">
+                    <option value="dark">🌑 Dark</option>
+                    <option value="light">☀️ Light</option>
+                </select>
+            </div>
+        </div>
 
-// Linking and unlinking
-function startLink(id){
-  if(mode==='unlinking'){ startUnlink(id); return; }
-  if(!linkFrom){ linkFrom = id; mode='linking'; document.getElementById('linkModeBtn').textContent='Linking: pick target'; openInspector(id); return; }
-  if(linkFrom===id){ alert('Cannot link a node to itself'); linkFrom=null; mode='select'; document.getElementById('linkModeBtn').textContent='Link Mode'; return; }
-  const type = prompt('Type of link? enter \"parent\" if first is parent of second, or \"spouse\" for spouse relation. Default parent:', 'parent');
-  const linkType = (type && type.toLowerCase()==='spouse') ? 'spouse' : 'parent';
-  if(linkType==='parent'){
-    const ans = confirm('Click OK if the first selected person is the PARENT of the target. Click Cancel if the first selected is the CHILD.');
-    if(ans){ links.push({id:uid(), from:linkFrom, to:id, type:'parent'}); }
-    else { links.push({id:uid(), from:id, to:linkFrom, type:'parent'}); }
-  } else {
-    links.push({id:uid(), from:linkFrom, to:id, type:'spouse'});
-  }
-  linkFrom = null; mode='select'; document.getElementById('linkModeBtn').textContent='Link Mode'; saveAndRender();
-}
-function startUnlink(id){
-  selectedId = id; openInspector(id);
-}
-function unlinkById(lid){ links = links.filter(l=>l.id!==lid); saveAndRender(); openInspector(selectedId); }
+        <div class="toolbar-section">
+            <div class="zoom-controls">
+                <label>Zoom</label>
+                <div class="zoom-buttons">
+                    <button class="zoom-btn" onclick="app.zoomOut()">−</button>
+                    <span class="zoom-level" id="zoomLevel">100%</span>
+                    <button class="zoom-btn" onclick="app.zoomIn()">+</button>
+                </div>
+            </div>
+        </div>
 
-// Inspector logic
-const inspector = document.getElementById('inspector');
-const inName = document.getElementById('in-name');
-const inGender = document.getElementById('in-gender');
-const inStatus = document.getElementById('in-status');
-const inAge = document.getElementById('in-age');
-const inNotes = document.getElementById('in-notes');
-const inAvatar = document.getElementById('in-avatar');
-const doneBtn = document.getElementById('doneBtn');
-const deleteBtn = document.getElementById('deleteBtn');
-const finishLinkBtn = document.getElementById('finishLinkBtn');
-const addToMainBtn = document.getElementById('addToMainBtn');
-const addToPersonalBtn = document.getElementById('addToPersonalBtn');
-const showMainBtn = document.getElementById('showMainBtn');
-const showPersonalBtn = document.getElementById('showPersonalBtn');
-const clearHighlightBtn = document.getElementById('clearHighlightBtn');
-const linksList = document.getElementById('linksList');
+        <div class="toolbar-section">
+            <button class="btn btn-secondary" onclick="app.exportData()">💾 Export</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📂 Import</button>
+            <input type="file" id="importFile" accept=".json" style="display:none" onchange="app.importData(event)">
+        </div>
+    </div>
 
-inAvatar.addEventListener('change', function(e){
-  const file = this.files[0]; if(!file) return;
-  const r = new FileReader(); r.onload = ()=>{ const n = findNode(selectedId); n.img = r.result; saveAndRender(); openInspector(selectedId); }; r.readAsDataURL(file);
-});
+    <div id="linkingIndicator">🔗 Click a person to create connection...</div>
 
-function openInspector(id){
-  selectedId = id;
-  const n = findNode(id); if(!n) return;
-  inspector.style.display='block'; document.getElementById('ins-title').textContent = 'Edit: '+(n.name||'Person');
-  inName.value = n.name; inGender.value = n.gender; inStatus.value = n.alive? 'alive':'deceased'; inAge.value = n.age; inNotes.value = n.notes;
-  ['green','brown','red','yellow'].forEach(c=> document.getElementById('sw-'+c).classList.toggle('sw-active', n.color===c));
-  linksList.innerHTML='';
-  links.filter(l=>l.from===id||l.to===id).forEach(l=>{
-    const otherId = l.from===id? l.to : l.from;
-    const other = findNode(otherId);
-    const row = document.createElement('div'); row.style.display='flex'; row.style.justifyContent='space-between'; row.style.alignItems='center';
-    const txt = document.createElement('div'); txt.textContent = (l.type==='parent'? (l.from===id? 'Parent of ':'Child of ') : 'Spouse of ') + (other? other.name : otherId);
-    const btn = document.createElement('button'); btn.className='btn small'; btn.textContent='Unlink'; btn.addEventListener('click', ()=>{ if(confirm('Remove this link?')) unlinkById(l.id); });
-    row.appendChild(txt); row.appendChild(btn); linksList.appendChild(row);
-  });
-}
+    <div id="workspace">
+        <div id="canvasWrapper">
+            <div id="canvas">
+                <svg id="linksSvg"></svg>
+            </div>
+        </div>
+    </div>
 
-doneBtn.addEventListener('click', ()=>{ if(!selectedId) return; const n = findNode(selectedId); n.name = inName.value; n.gender = inGender.value; n.alive = inStatus.value==='alive'; n.age = inAge.value; n.notes = inNotes.value; saveAndRender(); inspector.style.display='none'; selectedId=null; });
-deleteBtn.addEventListener('click', ()=>{ if(!selectedId) return; if(!confirm('Delete this person?')) return; deleteNode(selectedId); inspector.style.display='none'; selectedId=null; });
-finishLinkBtn.addEventListener('click', ()=>{
-  if(!linkFrom || !selectedId){ alert('Select source and target nodes first (use Link Mode or double-click node to pick source).'); return; }
-  if(linkFrom===selectedId){ alert('Cannot link to same node.'); linkFrom=null; return; }
-  const type = prompt('Type of link? \"parent\" or \"spouse\"', 'parent'); const linkType = (type && type.toLowerCase()==='spouse')? 'spouse' : 'parent';
-  if(linkType==='parent'){ const ans = confirm('Click OK if the first selected person is the PARENT of the target. Cancel if first is CHILD.'); if(ans) links.push({id:uid(), from:linkFrom, to:selectedId, type:'parent'}); else links.push({id:uid(), from:selectedId, to:linkFrom, type:'parent'}); } else { links.push({id:uid(), from:linkFrom, to:selectedId, type:'spouse'}); }
-  linkFrom=null; mode='select'; document.getElementById('linkModeBtn').textContent='Link Mode'; saveAndRender(); openInspector(selectedId);
-});
+    <div id="hoverCard">
+        <div class="hover-content">
+            <div class="hover-avatar" id="hoverAvatar">No Image</div>
+            <div class="hover-info">
+                <div class="hover-name" id="hoverName"></div>
+                <div class="hover-meta" id="hoverMeta"></div>
+            </div>
+        </div>
+        <div class="hover-notes" id="hoverNotes"></div>
+    </div>
 
-// groups: Add to main/personal groups (persistent labeling)
-addToMainBtn.addEventListener('click', ()=>{ if(!selectedId) return alert('Open a person first'); const n = findNode(selectedId); n.isMain=true; saveAndRender(); openInspector(selectedId); });
-addToPersonalBtn.addEventListener('click', ()=>{ if(!selectedId) return alert('Open a person first'); const n = findNode(selectedId); n.isPersonal=true; saveAndRender(); openInspector(selectedId); });
+    <div id="inspector">
+        <h3>✏️ Edit Person</h3>
+        <div class="form-group">
+            <label>Name</label>
+            <input type="text" id="inspName">
+        </div>
+        <div class="form-group">
+            <label>Gender</label>
+            <select id="inspGender">
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Status</label>
+            <select id="inspStatus">
+                <option value="alive">Alive</option>
+                <option value="deceased">Deceased</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Age</label>
+            <input type="number" id="inspAge" min="0">
+        </div>
+        <div class="form-group">
+            <label>Notes</label>
+            <textarea id="inspNotes"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Avatar</label>
+            <input type="file" id="inspAvatar" accept="image/*">
+        </div>
+        <div class="form-group">
+            <label>Link Style</label>
+            <select id="inspLinkStyle">
+                <option value="curved">Curved</option>
+                <option value="classic">Classic</option>
+                <option value="straight">Straight</option>
+            </select>
+        </div>
+        <div class="links-list" id="linksList"></div>
+        <div class="inspector-buttons">
+            <button class="btn btn-primary" onclick="app.saveInspector()">✓ Done</button>
+            <button class="btn btn-danger" onclick="app.deleteCurrentNode()">🗑 Delete</button>
+        </div>
+    </div>
 
-// highlight: compute main family (ancestors + descendants + siblings + spouses) and personal family (spouse + children)
-function collectAncestors(id, set=new Set()){ links.filter(l=>l.type==='parent' && l.to===id).forEach(l=>{ set.add(l.from); collectAncestors(l.from,set); }); return set; }
-function collectDescendants(id, set=new Set()){ links.filter(l=>l.type==='parent' && l.from===id).forEach(l=>{ set.add(l.to); collectDescendants(l.to,set); }); return set; }
-function collectSiblings(id, set=new Set()){ const parents = links.filter(l=>l.type==='parent' && l.to===id).map(l=>l.from); parents.forEach(p=> links.filter(l=>l.type==='parent' && l.from===p).forEach(c=>{ if(c.to!==id) set.add(c.to); })); return set; }
-function collectSpouses(id, set=new Set()){ links.filter(l=>l.type==='spouse' && (l.from===id||l.to===id)).forEach(l=> set.add(l.from===id? l.to : l.from)); return set; }
-function showMainFamily(){ if(!selectedId) return alert('Open a person first'); const ids = new Set(); ids.add(selectedId); collectAncestors(selectedId, ids); collectDescendants(selectedId, ids); collectSiblings(selectedId, ids); collectSpouses(selectedId, ids); highlightSet(ids, 'main'); }
-function showPersonalFamily(){ if(!selectedId) return alert('Open a person first'); const ids = new Set(); collectSpouses(selectedId, ids); collectDescendants(selectedId, ids); ids.add(selectedId); highlightSet(ids, 'personal'); }
-function highlightSet(set, type){ clearHighlights(); set.forEach(id=>{ const el = workspace.querySelector('.node[data-id=\"'+id+'\"]'); if(el){ if(type==='main') el.classList.add('highlight-main'); else el.classList.add('highlight-personal'); } }); }
-function clearHighlights(){ workspace.querySelectorAll('.node').forEach(n=>{ n.classList.remove('highlight-main'); n.classList.remove('highlight-personal'); }); }
+    <script>
+        const app = {
+            nodes: [],
+            links: [],
+            draggedNode: null,
+            linkingMode: false,
+            linkingFrom: null,
+            currentNode: null,
+            nextId: 1,
+            zoom: 1,
+            isPanning: false,
+            panStart: {x: 0, y: 0},
+            panOffset: {x: 0, y: 0},
 
-showMainBtn.addEventListener('click', showMainFamily);
-showPersonalBtn.addEventListener('click', showPersonalFamily);
-clearHighlightBtn.addEventListener('click', clearHighlights);
+            init() {
+                this.loadData();
+                this.render();
+                this.setupEventListeners();
+                this.startAutoSave();
+            },
 
-// hover card
-function showHover(n, e){ hoverCard.style.display='block'; hoverCard.innerHTML = '<div style=\"display:flex;gap:8px\"><div style=\"width:64px;height:64px;border-radius:8px;overflow:hidden\">'+(n.img?('<img src=\"'+n.img+'\" style=\"width:100%;height:100%;object-fit:cover\">'):'<div style=\"width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#777\">No Img</div>')+'</div><div><strong>'+escapeHtml(n.name)+'</strong><div style=\"font-size:12px;color:#444\">'+escapeHtml(n.gender)+' • '+(n.alive?'Alive':'Deceased')+'</div><div style=\"font-size:12px;color:#444\">Age: '+escapeHtml(n.age||'?')+'</div></div></div><div style=\"margin-top:6px;font-size:12px;color:#333\">'+escapeHtml(n.notes||'')+'</div>'; moveHover(e); }
-function moveHover(e){ hoverCard.style.left = (e.clientX + 12) + 'px'; hoverCard.style.top = (e.clientY + 12) + 'px'; }
-function hideHover(){ hoverCard.style.display='none'; hoverCard.innerHTML=''; }
+            setupEventListeners() {
+                const workspace = document.getElementById('workspace');
+                const canvas = document.getElementById('canvas');
+                
+                workspace.addEventListener('wheel', this.onWheel.bind(this), {passive: false});
+                
+                workspace.addEventListener('mousedown', (e) => {
+                    if (e.target === workspace || e.target === document.getElementById('canvasWrapper') || e.target === canvas) {
+                        this.isPanning = true;
+                        workspace.classList.add('panning');
+                        this.panStart = {x: e.clientX - this.panOffset.x, y: e.clientY - this.panOffset.y};
+                    }
+                });
+                
+                workspace.addEventListener('mousemove', (e) => {
+                    if (this.isPanning) {
+                        this.panOffset.x = e.clientX - this.panStart.x;
+                        this.panOffset.y = e.clientY - this.panStart.y;
+                        this.updateTransform();
+                    }
+                });
+                
+                workspace.addEventListener('mouseup', () => {
+                    this.isPanning = false;
+                    workspace.classList.remove('panning');
+                });
 
-// export/import
-document.getElementById('exportBtn').addEventListener('click', ()=>{ const payload = {nodes,links,groups,settings,ts:new Date().toISOString()}; const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='family_data_backup_'+(new Date().toISOString().slice(0,19).replace(/:/g,'-'))+'.json'; a.click(); URL.revokeObjectURL(url); });
-document.getElementById('importFile').addEventListener('change', function(e){ const f=this.files[0]; if(!f) return; const r=new FileReader(); r.onload = ()=>{ try{ const d=JSON.parse(r.result); if(d.nodes) nodes=d.nodes; if(d.links) links=d.links; if(d.groups) groups=d.groups; if(d.settings) settings=d.settings; saveLocal(); render(); } catch(err){ alert('Invalid file'); } }; r.readAsText(f); });
+                workspace.addEventListener('mouseleave', () => {
+                    this.isPanning = false;
+                    workspace.classList.remove('panning');
+                });
 
-// background select
-document.getElementById('bgSelect').addEventListener('change', function(){ const v=this.value; if(v==='forest') canvas.style.background = 'linear-gradient(180deg,#072012 0%, #0b3a1f 40%, #062816 100%)'; else if(v==='autumn') canvas.style.background = 'linear-gradient(180deg,#2b0b00 0%, #7a2f05 40%, #f3c47a 100%)'; else if(v==='dawn') canvas.style.background = 'linear-gradient(180deg,#0b3a59, #6ec1e4 40%, #fbe8a6)'; else canvas.style.background = '#121212'; });
+                canvas.addEventListener('mousedown', this.onNodeMouseDown.bind(this));
+                document.addEventListener('mousemove', this.onNodeMouseMove.bind(this));
+                document.addEventListener('mouseup', this.onNodeMouseUp.bind(this));
+            },
 
-// mode buttons
-document.getElementById('linkModeBtn').addEventListener('click', ()=>{ mode = (mode==='linking'?'select':'linking'); linkFrom = null; document.getElementById('linkModeBtn').textContent = (mode==='linking'?'Linking (select source)':'Link Mode'); });
-document.getElementById('unlinkModeBtn').addEventListener('click', ()=>{ mode = (mode==='unlinking'?'select':'unlinking'); linkFrom=null; document.getElementById('unlinkModeBtn').textContent = (mode==='unlinking'?'Unlinking (select person)':'Unlink Mode'); });
+            onWheel(e) {
+                e.preventDefault();
+                const delta = e.deltaY > 0 ? -0.1 : 0.1;
+                this.zoom = Math.min(Math.max(0.3, this.zoom + delta), 3);
+                this.updateTransform();
+                document.getElementById('zoomLevel').textContent = Math.round(this.zoom * 100) + '%';
+            },
 
-// clicking workspace to capture target when linking/unlinking
-workspace.addEventListener('click', (e)=>{ const nodeEl = e.target.closest('.node'); if(!nodeEl) return; const id = nodeEl.dataset.id; if(mode==='linking'){ if(!linkFrom){ linkFrom = id; alert('Source selected. Now click the target node or open inspector and use Finish Link.'); openInspector(id); return; } selectedId = id; openInspector(id); } else if(mode==='unlinking'){ selectedId = id; openInspector(id); } });
+            zoomIn() {
+                this.zoom = Math.min(3, this.zoom + 0.2);
+                this.updateTransform();
+                document.getElementById('zoomLevel').textContent = Math.round(this.zoom * 100) + '%';
+            },
 
-// keyboard shortcut: Delete to remove selected
-document.addEventListener('keydown', (e)=>{ if(e.key==='Delete' && selectedId){ if(confirm('Delete selected?')){ deleteNode(selectedId); inspector.style.display='none'; selectedId=null; } } });
+            zoomOut() {
+                this.zoom = Math.max(0.3, this.zoom - 0.2);
+                this.updateTransform();
+                document.getElementById('zoomLevel').textContent = Math.round(this.zoom * 100) + '%';
+            },
 
-// init UI
-document.getElementById('addNodeBtn').addEventListener('click', ()=> addNode(200,120));
-document.getElementById('autoBackupChk').addEventListener('change', ()=> { ensureAutoBackupTimer(); settings.autoBackup = document.getElementById('autoBackupChk').checked; saveLocal(); });
+            updateTransform() {
+                const wrapper = document.getElementById('canvasWrapper');
+                wrapper.style.transform = `scale(${this.zoom}) translate(${this.panOffset.x / this.zoom}px, ${this.panOffset.y / this.zoom}px)`;
+            },
 
-// color swatches behavior
-['green','brown','red','yellow'].forEach(c=>{ const el = document.getElementById('sw-'+c); el.addEventListener('click', ()=>{ if(!selectedId) return alert('Open a person first'); const n = findNode(selectedId); n.color = c; saveAndRender(); openInspector(selectedId); }); });
+            changeBackground(value) {
+                const canvas = document.getElementById('canvas');
+                if (value === 'forest') {
+                    canvas.style.background = 'linear-gradient(180deg, #072012 0%, #0b3a1f 40%, #062816 100%)';
+                } else if (value === 'autumn') {
+                    canvas.style.background = 'linear-gradient(180deg, #2b0b00 0%, #7a2f05 40%, #f3c47a 100%)';
+                } else if (value === 'dawn') {
+                    canvas.style.background = 'linear-gradient(180deg, #0b3a59, #6ec1e4 40%, #fbe8a6)';
+                } else if (value === 'midnight') {
+                    canvas.style.background = 'linear-gradient(180deg, #000000 0%, #1a1a2e 40%, #16213e 100%)';
+                }
+            },
 
-// on load: render and restore settings
-(function init(){ render(); document.getElementById('bgSelect').dispatchEvent(new Event('change')); try{ document.getElementById('autoBackupChk').checked = !!settings.autoBackup; } catch(e){} ensureAutoBackupTimer(); })();
+            changeTheme(value) {
+                if (value === 'light') {
+                    document.body.classList.add('light-theme');
+                } else {
+                    document.body.classList.remove('light-theme');
+                }
+            },
 
-// helpers
-function escapeHtml(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-</script>
+            addNode() {
+                const node = {
+                    id: 'node_' + this.nextId++,
+                    name: 'New Person',
+                    gender: 'male',
+                    alive: true,
+                    age: 30,
+                    notes: '',
+                    img: null,
+                    linkStyle: 'curved',
+                    x: 400 + Math.random() * 600,
+                    y: 300 + Math.random() * 400
+                };
+                this.nodes.push(node);
+                this.render();
+                this.saveData();
+            },
+
+            render() {
+                const canvas = document.getElementById('canvas');
+                const existingNodes = canvas.querySelectorAll('.node');
+                existingNodes.forEach(n => n.remove());
+
+                this.nodes.forEach(node => {
+                    const div = document.createElement('div');
+                    div.className = `node ${node.alive ? 'alive' : 'deceased'}`;
+                    div.style.left = node.x + 'px';
+                    div.style.top = node.y + 'px';
+                    div.dataset.id = node.id;
+
+                    const avatar = document.createElement('div');
+                    avatar.className = 'node-avatar';
+                    if (node.img) {
+                        const img = document.createElement('img');
+                        img.src = node.img;
+                        avatar.appendChild(img);
+                    } else {
+                        avatar.textContent = 'No Image';
+                    }
+
+                    const name = document.createElement('div');
+                    name.className = 'node-name';
+                    name.textContent = node.name;
+
+                    const meta = document.createElement('div');
+                    meta.className = 'node-meta';
+                    meta.textContent = `${node.gender} • ${node.alive ? 'Alive' : 'Deceased'}`;
+
+                    const notes = document.createElement('div');
+                    notes.className = 'node-notes';
+                    notes.textContent = node.notes || 'No notes';
+
+                    const actions = document.createElement('div');
+                    actions.className = 'node-actions';
+
+                    const editBtn = document.createElement('button');
+                    editBtn.className = 'chip chip-edit';
+                    editBtn.textContent = '✏️ Edit';
+                    editBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        this.openInspector(node.id);
+                    };
+
+                    const linkBtn = document.createElement('button');
+                    linkBtn.className = 'chip chip-link';
+                    linkBtn.textContent = '🔗 Link';
+                    linkBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        this.startLinking(node.id);
+                    };
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'chip chip-delete';
+                    deleteBtn.textContent = '🗑 Delete';
+                    deleteBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        this.deleteNode(node.id);
+                    };
+
+                    actions.appendChild(editBtn);
+                    actions.appendChild(linkBtn);
+                    actions.appendChild(deleteBtn);
+
+                    div.appendChild(avatar);
+                    div.appendChild(name);
+                    div.appendChild(meta);
+                    div.appendChild(notes);
+                    div.appendChild(actions);
+
+                    div.addEventListener('mouseenter', (e) => this.showHoverCard(node, e));
+                    div.addEventListener('mouseleave', () => this.hideHoverCard());
+                    div.addEventListener('mousemove', (e) => this.updateHoverCardPosition(e));
+
+                    canvas.appendChild(div);
+                });
+
+                this.renderLinks();
+            },
+
+            renderLinks() {
+                const svg = document.getElementById('linksSvg');
+                svg.innerHTML = '';
+
+                this.links.forEach(link => {
+                    const fromNode = this.nodes.find(n => n.id === link.from);
+                    const toNode = this.nodes.find(n => n.id === link.to);
+                    if (!fromNode || !toNode) return;
+
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    const pathData = this.calculatePath(fromNode, toNode, link.type);
+                    path.setAttribute('d', pathData);
+                    path.classList.add('link-path');
+                    path.classList.add(link.type === 'spouse' ? 'link-spouse' : 'link-parent');
+                    svg.appendChild(path);
+                });
+            },
+
+            calculatePath(from, to, type) {
+                const x1 = from.x + 120;
+                const y1 = from.y + 80;
+                const x2 = to.x + 120;
+                const y2 = to.y + 80;
+
+                if (type === 'spouse') {
+                    const cy = (y1 + y2) / 2;
+                    return `M ${x1} ${y1} Q ${(x1+x2)/2} ${cy-30} ${x2} ${y2}`;
+                } else {
+                    const style = from.linkStyle || 'curved';
+                    if (style === 'straight') {
+                        return `M ${x1} ${y1} L ${x2} ${y2}`;
+                    } else if (style === 'classic') {
+                        const midY = (y1 + y2) / 2;
+                        return `M ${x1} ${y1} L ${x1} ${midY} L ${x2} ${midY} L ${x2} ${y2}`;
+                    } else {
+                        return `M ${x1} ${y1} Q ${x1} ${(y1+y2)/2} ${x2} ${y2}`;
+                    }
+                }
+            },
+
+            onNodeMouseDown(e) {
+                const nodeEl = e.target.closest('.node');
+                if (!nodeEl) return;
+
+                e.stopPropagation();
+                const nodeId = nodeEl.dataset.id;
+
+                if (this.linkingMode && this.linkingFrom) {
+                    this.completeLinking(nodeId);
+                    return;
+                }
+
+                this.draggedNode = this.nodes.find(n => n.id === nodeId);
+                const rect = nodeEl.getBoundingClientRect();
+                const canvasRect = document.getElementById('canvas').getBoundingClientRect();
+                
+                this.dragOffset = {
+                    x: (e.clientX - canvasRect.left) / this.zoom - this.draggedNode.x,
+                    y: (e.clientY - canvasRect.top) / this.zoom - this.draggedNode.y
+                };
+            },
+
+            onNodeMouseMove(e) {
+                if (this.draggedNode) {
+                    const canvasRect = document.getElementById('canvas').getBoundingClientRect();
+                    this.draggedNode.x = (e.clientX - canvasRect.left) / this.zoom - this.dragOffset.x;
+                    this.draggedNode.y = (e.clientY - canvasRect.top) / this.zoom - this.dragOffset.y;
+                    this.render();
+                }
+            },
+
+            onNodeMouseUp() {
+                if (this.draggedNode) {
+                    this.saveData();
+                }
+                this.draggedNode = null;
+            },
+
+            startLinking(nodeId) {
+                this.linkingMode = true;
+                this.linkingFrom = nodeId;
+                document.getElementById('linkModeBtn').classList.add('active');
+                document.getElementById('linkingIndicator').style.display = 'block';
+            },
+
+            completeLinking(toId) {
+                if (this.linkingFrom === toId) {
+                    alert('Cannot link a person to themselves');
+                    return;
+                }
+
+                const linkType = prompt('Link type:\n1 = Parent/Child\n2 = Spouse', '1');
+                if (!linkType) {
+                    this.linkingMode = false;
+                    this.linkingFrom = null;
+                    document.getElementById('linkModeBtn').classList.remove('active');
+                    document.getElementById('linkingIndicator').style.display = 'none';
+                    return;
+                }
+
+                if (linkType === '1') {
+                    const direction = prompt('Is ' + this.nodes.find(n => n.id === this.linkingFrom).name + ' the:\n1 = Parent\n2 = Child', '1');
+                    if (direction === '1') {
+                        this.addLink(this.linkingFrom, toId, 'parent');
+                    } else if (direction === '2') {
+                        this.addLink(toId, this.linkingFrom, 'parent');
+                    }
+                } else if (linkType === '2') {
+                    this.addLink(this.linkingFrom, toId, 'spouse');
+                }
+
+                this.linkingMode = false;
+                this.linkingFrom = null;
+                document.getElementById('linkModeBtn').classList.remove('active');
+                document.getElementById('linkingIndicator').style.display = 'none';
+                this.render();
+                this.saveData();
+            },
+
+            toggleLinkMode() {
+                if (this.linkingMode) {
+                    this.linkingMode = false;
+                    this.linkingFrom = null;
+                    document.getElementById('linkModeBtn').classList.remove('active');
+                    document.getElementById('linkingIndicator').style.display = 'none';
+                }
+            },
+
+            addLink(from, to, type) {
+                const link = {
+                    id: 'link_' + Date.now(),
+                    from: from,
+                    to: to,
+                    type: type
+                };
+                this.links.push(link);
+            },
+
+            openInspector(nodeId) {
+                this.currentNode = this.nodes.find(n => n.id === nodeId);
+                if (!this.currentNode) return;
+
+                document.getElementById('inspName').value = this.currentNode.name;
+                document.getElementById('inspGender').value = this.currentNode.gender;
+                document.getElementById('inspStatus').value = this.currentNode.alive ? 'alive' : 'deceased';
+                document.getElementById('inspAge').value = this.currentNode.age;
+                document.getElementById('inspNotes').value = this.currentNode.notes;
+                document.getElementById('inspLinkStyle').value = this.currentNode.linkStyle;
+
+                this.renderLinksInInspector();
+
+                document.getElementById('inspector').style.display = 'block';
+            },
+
+            renderLinksInInspector() {
+                const container = document.getElementById('linksList');
+                container.innerHTML = '<h4>🔗 Connections:</h4>';
+
+                const nodeLinks = this.links.filter(l => 
+                    l.from === this.currentNode.id || l.to === this.currentNode.id
+                );
+
+                if (nodeLinks.length === 0) {
+                    container.innerHTML += '<div style="font-size:13px; color:#888; text-align:center; padding:12px">No connections yet</div>';
+                    return;
+                }
+
+                nodeLinks.forEach(link => {
+                    const other = link.from === this.currentNode.id ? 
+                        this.nodes.find(n => n.id === link.to) :
+                        this.nodes.find(n => n.id === link.from);
+                    
+                    if (!other) return;
+
+                    const item = document.createElement('div');
+                    item.className = 'link-item';
+
+                    const label = document.createElement('span');
+                    let relationship = '';
+                    if (link.type === 'spouse') {
+                        relationship = '💑 Spouse of ';
+                    } else if (link.from === this.currentNode.id) {
+                        relationship = '👶 Parent of ';
+                    } else {
+                        relationship = '👴 Child of ';
+                    }
+                    label.textContent = relationship + other.name;
+
+                    const btn = document.createElement('button');
+                    btn.textContent = 'Unlink';
+                    btn.onclick = () => this.removeLink(link.id);
+
+                    item.appendChild(label);
+                    item.appendChild(btn);
+                    container.appendChild(item);
+                });
+            },
+
+            removeLink(linkId) {
+                this.links = this.links.filter(l => l.id !== linkId);
+                this.render();
+                this.renderLinksInInspector();
+                this.saveData();
+            },
+
+            saveInspector() {
+                this.currentNode.name = document.getElementById('inspName').value;
+                this.currentNode.gender = document.getElementById('inspGender').value;
+                this.currentNode.alive = document.getElementById('inspStatus').value === 'alive';
+                this.currentNode.age = parseInt(document.getElementById('inspAge').value);
+                this.currentNode.notes = document.getElementById('inspNotes').value;
+                this.currentNode.linkStyle = document.getElementById('inspLinkStyle').value;
+
+                const avatarFile = document.getElementById('inspAvatar').files[0];
+                if (avatarFile) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        this.currentNode.img = e.target.result;
+                        this.render();
+                        this.saveData();
+                    };
+                    reader.readAsDataURL(avatarFile);
+                }
+
+                document.getElementById('inspector').style.display = 'none';
+                this.render();
+                this.saveData();
+            },
+
+            deleteCurrentNode() {
+                if (!confirm('Delete this person from the family tree?')) return;
+                this.deleteNode(this.currentNode.id);
+                document.getElementById('inspector').style.display = 'none';
+            },
+
+            deleteNode(nodeId) {
+                this.nodes = this.nodes.filter(n => n.id !== nodeId);
+                this.links = this.links.filter(l => l.from !== nodeId && l.to !== nodeId);
+                this.render();
+                this.saveData();
+            },
+
+            showHoverCard(node, e) {
+                const card = document.getElementById('hoverCard');
+                const avatar = document.getElementById('hoverAvatar');
+                
+                if (node.img) {
+                    avatar.innerHTML = `<img src="${node.img}">`;
+                } else {
+                    avatar.innerHTML = 'No Image';
+                }
+
+                document.getElementById('hoverName').textContent = node.name;
+                document.getElementById('hoverMeta').textContent = 
+                    `${node.gender} • ${node.alive ? 'Alive' : 'Deceased'} • Age: ${node.age}`;
+                document.getElementById('hoverNotes').textContent = node.notes || 'No notes';
+
+                card.style.display = 'block';
+                this.updateHoverCardPosition(e);
+            },
+
+            hideHoverCard() {
+                document.getElementById('hoverCard').style.display = 'none';
+            },
+
+            updateHoverCardPosition(e) {
+                const card = document.getElementById('hoverCard');
+                card.style.left = (e.clientX + 15) + 'px';
+                card.style.top = (e.clientY + 15) + 'px';
+            },
+
+            saveData() {
+                const data = {
+                    nodes: this.nodes,
+                    links: this.links,
+                    nextId: this.nextId
+                };
+                localStorage.setItem('familyTreeData', JSON.stringify(data));
+            },
+
+            loadData() {
+                const saved = localStorage.getItem('familyTreeData');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    this.nodes = data.nodes || [];
+                    this.links = data.links || [];
+                    this.nextId = data.nextId || 1;
+                }
+            },
+
+            exportData() {
+                const data = {
+                    nodes: this.nodes,
+                    links: this.links
+                };
+                const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'family-tree-' + Date.now() + '.json';
+                a.click();
+            },
+
+            importData(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        this.nodes = data.nodes || [];
+                        this.links = data.links || [];
+                        this.render();
+                        this.saveData();
+                        alert('Family tree imported successfully! 🌳');
+                    } catch (err) {
+                        alert('Error importing file: ' + err.message);
+                    }
+                };
+                reader.readAsText(file);
+            },
+
+            startAutoSave() {
+                setInterval(() => {
+                    this.saveData();
+                }, 300000);
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+    </script>
 </body>
 </html>
