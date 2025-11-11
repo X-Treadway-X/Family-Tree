@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1762889460315,
+    "name": "B",
+    "gender": "Male",
+    "dob": "",
+    "dod": "",
+    "alive": true,
+    "notes": "",
+    "img": "",
+    "x": 707,
+    "y": 218,
+    "parentIds": [],
+    "spouseIds": [],
+    "mainFamily": false,
+    "personalFamily": false
+  }
+]
