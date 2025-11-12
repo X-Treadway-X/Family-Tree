@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Family Tree App</title>
-    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3884/3884975.png" type="image/png">
-
-
     <style>
         * {
             margin: 0;
@@ -19,22 +16,6 @@
             background: #0a0a0a;
             overflow: hidden;
         }
-
-        .tree-clock {
-          position: absolute;
-          top: 85px;
-          right: 1250px;
-          font-family: 'Georgia', serif;
-          font-size: 14px;
-          color: #fff;
-          background: rgba(0,0,0,0.4);
-          padding: 6px 12px;
-          border-radius: 8px;
-          box-shadow: 0 3px 8px rgba(0,0,0,0.4);
-          letter-spacing: 1px;
-          z-index: 10;
-        }
-
 
         body.light-theme {
             background: #f5f5f5;
@@ -79,6 +60,44 @@
             font-weight: bold;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
             letter-spacing: 2px;
+        }
+
+        .people-counter {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 10px;
+            border: 2px solid #8b4513;
+            font-size: 18px;
+            color: #d4af37;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        body.light-theme .people-counter {
+            background: rgba(255,255,255,0.4);
+            color: #2d1810;
+        }
+
+        .clock-display {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 10px;
+            border: 2px solid #8b4513;
+            font-size: 16px;
+            color: #d4af37;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        body.light-theme .clock-display {
+            background: rgba(255,255,255,0.4);
+            color: #2d1810;
         }
 
         .toolbar-section {
@@ -276,24 +295,6 @@
             cursor: grabbing;
         }
 
-        #workspace::-webkit-scrollbar {
-            width: 12px;
-            height: 12px;
-        }
-
-        #workspace::-webkit-scrollbar-track {
-            background: #0a0a0a;
-        }
-
-        body.light-theme #workspace::-webkit-scrollbar-track {
-            background: #e0e0e0;
-        }
-
-        #workspace::-webkit-scrollbar-thumb {
-            background: #8b4513;
-            border-radius: 6px;
-        }
-
         #canvasWrapper {
             transform-origin: 0 0;
             transition: transform 0.1s ease-out;
@@ -301,8 +302,8 @@
 
         #canvas {
             position: relative;
-            width: 4000px;
-            height: 3000px;
+            min-width: 4000px;
+            min-height: 3000px;
             background: linear-gradient(180deg, #072012 0%, #0b3a1f 40%, #062816 100%);
             background-image: 
                 repeating-linear-gradient(0deg, transparent, transparent 49px, rgba(139, 69, 19, 0.05) 49px, rgba(139, 69, 19, 0.05) 50px),
@@ -325,8 +326,8 @@
 
         .node {
             position: absolute;
-            width: 270px;
-            min-height: 300px;
+            width: 280px;
+            min-height: 200px;
             background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
             border-radius: 16px;
             box-shadow: 0 12px 32px rgba(0,0,0,0.8), inset 0 2px 0 rgba(255,255,255,0.1);
@@ -355,7 +356,7 @@
         }
 
         .node:hover {
-            transform: scale(1.08);
+            /* transform: scale(1.08); */
             box-shadow: 0 16px 40px rgba(0,0,0,0.9), inset 0 2px 0 rgba(255,255,255,0.1);
             z-index: 100;
         }
@@ -365,12 +366,12 @@
         }
 
         .node.alive {
-            border-color: #29bd29;
+            border-color: #2dd72d;
             box-shadow: 0 12px 32px rgba(0,0,0,0.8), 0 0 30px rgba(34, 139, 34, 0.5);
         }
 
         .node.deceased {
-            border-color: #f30101;
+            border-color: #fc0707;
             box-shadow: 0 12px 32px rgba(0,0,0,0.8), 0 0 30px rgba(139, 69, 19, 0.4);
         }
 
@@ -383,7 +384,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            font-size: 14px;
             color: #888;
             margin: 0 auto 16px;
             overflow: hidden;
@@ -405,7 +406,7 @@
         .node-name {
             font-size: 20px;
             font-weight: bold;
-            color: #ff4747;
+            color: #f52a2a;
             margin-bottom: 8px;
             word-wrap: break-word;
             text-align: center;
@@ -419,7 +420,7 @@
 
         .node-meta {
             font-size: 14px;
-            color: #78c9ff;
+            color: #68b6f6;
             margin-bottom: 8px;
             text-align: center;
             font-style: italic;
@@ -431,7 +432,7 @@
 
         .node-notes {
             font-size: 13px;
-            color: #bcbaba;
+            color: #b6b4b4;
             margin-bottom: 12px;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -445,15 +446,15 @@
 
         .node-actions {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             flex-wrap: nowrap;
             justify-content: center;
         }
 
         .chip {
-            padding: 5px 7px;
-            border-radius: 8px;
-            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11px;
             cursor: pointer;
             border: 2px solid transparent;
             font-weight: bold;
@@ -484,12 +485,6 @@
             border-color: #2fa02f;
         }
 
-        .chip-unlink {
-            background: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
-            color: #2d1810;
-            border-color: #f4d03f;
-        }
-
         .chip-delete {
             background: linear-gradient(135deg, #8b2500 0%, #6b1d00 100%);
             color: white;
@@ -498,15 +493,15 @@
 
         #hoverCard {
             position: fixed;
-            width: 300px;
+            width: 400px;
             background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
             border-radius: 16px;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.9), 0 0 0 3px #8b4513;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.9), 0 0 0 3px #3aace4;
             padding: 20px;
             display: none;
             z-index: 9999;
             pointer-events: none;
-            border: 4px solid #8b4513;
+            border: 4px solid #3aace4;
         }
 
         body.light-theme #hoverCard {
@@ -515,20 +510,25 @@
 
         .hover-content {
             display: flex;
+            flex-direction: column;
             gap: 16px;
-            margin-bottom: 12px;
         }
 
         .hover-avatar {
-            width: 90px;
-            height: 90px;
+            width: 200px;
+            height: 200px;
             border-radius: 50%;
             object-fit: cover;
             background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
-            flex-shrink: 0;
             overflow: hidden;
             border: 3px solid #8b4513;
             box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #888;
         }
 
         body.light-theme .hover-avatar {
@@ -542,34 +542,36 @@
         }
 
         .hover-info {
-            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
-        .hover-name {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 6px;
-            color: #d4af37;
-        }
-
-        body.light-theme .hover-name {
-            color: #2d1810;
-        }
-
-        .hover-meta {
+        .hover-info-row {
             font-size: 14px;
-            color: #aaa;
-            margin-bottom: 4px;
-            font-style: italic;
+            line-height: 1.6;
         }
 
-        body.light-theme .hover-meta {
+        .hover-label {
+            color: #30c47c;
+            font-weight: bold;
+        }
+
+        body.light-theme .hover-label {
+            color: #8b6914;
+        }
+
+        .hover-value {
+            color: #fc5050;
+        }
+
+        body.light-theme .hover-value {
             color: #4a3520;
         }
 
         .hover-notes {
             font-size: 13px;
-            color: #888;
+            color: #cac6c6;
             margin-top: 12px;
             padding-top: 12px;
             border-top: 2px solid #333;
@@ -684,7 +686,7 @@
             resize: vertical;
             min-height: 80px;
         }
-            /*          ------------------------------------------- */
+
         .links-list {
             margin: 24px 0;
             padding: 16px;
@@ -761,7 +763,7 @@
 
         .link-spouse {
             stroke: #228b22;
-            stroke-dasharray: 8, 5;
+            stroke-dasharray: 8, 8;
         }
 
         #linkingIndicator {
@@ -782,45 +784,14 @@
             animation: pulse 2s infinite;
         }
 
-        .node::after {
+        /* .node::after {
             content: '🍂';
             position: absolute;
             top: -18px;
             right: -18px;
             font-size: 24px;
             opacity: 0.4;
-        }
-
-        #treeWidget {
-          position: fixed;
-          top: 90px;
-          left: 1300px;
-          background: rgba(0, 0, 0, 0.55);
-          color: #fff;
-          font-family: 'Georgia', serif;
-          font-size: 13px;
-          padding: 10px 14px;
-          border-radius: 10px;
-          box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-          z-index: 2000;
-          backdrop-filter: blur(6px);
-          border: 1.5px solid rgba(212,175,55,0.6);
-          line-height: 1.4em;
-          transition: opacity 0.5s ease-in-out;
-        }
-
-        .light-theme #treeWidget {
-          background: rgba(255, 255, 255, 0.7);
-          color: #222;
-          border-color: rgba(139,69,19,0.5);
-        }
-
-        #clockLabel {
-          font-weight: bold;
-          margin-top: 4px;
-          text-align: left;
-        }
-
+        } */
     </style>
 </head>
 <body>
@@ -828,16 +799,12 @@
         <div class="toolbar-brand">
             <div class="toolbar-icon">🌳</div>
             <div class="toolbar-title">Family Tree</div>
+            <div class="people-counter">
+                <span>👥</span>
+                <span id="peopleCount">0</span>
+                <span>People</span>
+            </div>
         </div>
-
-        <div id="treeClock" class="tree-clock"></div>
-
-        <div id="treeWidget">
-          <div id="createdLabel">🌱 Created on Nov 11, 2025</div>
-          <div id="clockLabel">🕒 7:05 PM</div>
-        </div>
-
-
         
         <div class="toolbar-section">
             <button class="btn btn-primary" onclick="app.addNode()">+ Add Person</button>
@@ -880,6 +847,13 @@
             <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📂 Import</button>
             <input type="file" id="importFile" accept=".json" style="display:none" onchange="app.importData(event)">
         </div>
+
+        <div class="toolbar-section">
+            <div class="clock-display">
+                <span>🕐</span>
+                <span id="clockTime">00:00:00</span>
+            </div>
+        </div>
     </div>
 
     <div id="linkingIndicator">🔗 Click a person to create connection...</div>
@@ -896,9 +870,30 @@
         <div class="hover-content">
             <div class="hover-avatar" id="hoverAvatar">No Image</div>
             <div class="hover-info">
-                <div class="hover-name" id="hoverName"></div>
-                <div class="hover-meta" id="hoverMeta"></div>
+                <div>
+                <label class="hover-label">Name:</span> </label>
+                    <span class="hover-value" id="hoverName"></span>
+                </div>
+
+                <div class="hover-info-row">
+                    <span class="hover-label">Age:</span> 
+                    <span class="hover-value" id="hoverAge"></span>
+                </div>
+
+                <div class="hover-info-row">
+                    <span class="hover-label">Birthdate:</span> 
+                    <span class="hover-value" id="hoverBirthdate"></span>
+                </div>
+                <div class="hover-info-row">
+                    <span class="hover-label">Status:</span> 
+                    <span class="hover-value" id="hoverStatus"></span>
+                </div>
+                <div class="hover-info-row" id="hoverDeathdateRow" style="display:none">
+                    <span class="hover-label">Deathdate:</span> 
+                    <span class="hover-value" id="hoverDeathdate"></span>
+                </div>
             </div>
+
         </div>
         <div class="hover-notes" id="hoverNotes"></div>
     </div>
@@ -919,7 +914,7 @@
         </div>
         <div class="form-group">
             <label>Status</label>
-            <select id="inspStatus">
+            <select id="inspStatus" onchange="app.toggleDeathdateField()">
                 <option value="alive">Alive</option>
                 <option value="deceased">Deceased</option>
             </select>
@@ -927,6 +922,14 @@
         <div class="form-group">
             <label>Age</label>
             <input type="number" id="inspAge" min="0">
+        </div>
+        <div class="form-group">
+            <label>Birthdate</label>
+            <input type="date" id="inspBirthdate">
+        </div>
+        <div class="form-group" id="deathdateGroup" style="display:none">
+            <label>Deathdate</label>
+            <input type="date" id="inspDeathdate">
         </div>
         <div class="form-group">
             <label>Notes</label>
@@ -964,39 +967,42 @@
             isPanning: false,
             panStart: {x: 0, y: 0},
             panOffset: {x: 0, y: 0},
+            canvasWidth: 4000,
+            canvasHeight: 3000,
 
             init() {
                 this.loadData();
+                this.updateCanvasSize();
                 this.render();
                 this.setupEventListeners();
                 this.startAutoSave();
+                this.startClock();
+                this.updatePeopleCounter();
             },
+
             startClock() {
-            const clockEl = document.getElementById('treeClock');
-            const updateClock = () => {
-                const now = new Date();
-                const options = { 
-                    weekday: 'short', 
-                    year: 'numeric', 
-                    month: 'short', 
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit'
+                const updateClock = () => {
+                    const now = new Date();
+                    const hours = String(now.getHours()).padStart(2, '0');
+                    const minutes = String(now.getMinutes()).padStart(2, '0');
+                    const seconds = String(now.getSeconds()).padStart(2, '0');
+                    document.getElementById('clockTime').textContent = `${hours}:${minutes}:${seconds}`;
                 };
-                clockEl.textContent = now.toLocaleString('en-US', options);
-            };
-            updateClock();
-            setInterval(updateClock, 1000);
-        },init() {
-    this.loadData();
-    this.render();
-    this.setupEventListeners();
-    this.startAutoSave();
-    this.startClock(); // 🕒 Start the clock
-},
+                updateClock();
+                setInterval(updateClock, 1000);
+            },
 
+            updatePeopleCounter() {
+                document.getElementById('peopleCount').textContent = this.nodes.length;
+            },
 
+            formatDate(dateString) {
+                if (!dateString) return 'Not specified';
+                const date = new Date(dateString);
+                const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                               'July', 'August', 'September', 'October', 'November', 'December'];
+                return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+            },
 
             setupEventListeners() {
                 const workspace = document.getElementById('workspace');
@@ -1044,13 +1050,13 @@
             },
 
             zoomIn() {
-                this.zoom = Math.min(3, this.zoom + 0.2);
+                this.zoom = Math.min(3, this.zoom + 0.1);
                 this.updateTransform();
                 document.getElementById('zoomLevel').textContent = Math.round(this.zoom * 100) + '%';
             },
 
             zoomOut() {
-                this.zoom = Math.max(0.3, this.zoom - 0.2);
+                this.zoom = Math.max(0.3, this.zoom - 0.1);
                 this.updateTransform();
                 document.getElementById('zoomLevel').textContent = Math.round(this.zoom * 100) + '%';
             },
@@ -1058,6 +1064,17 @@
             updateTransform() {
                 const wrapper = document.getElementById('canvasWrapper');
                 wrapper.style.transform = `scale(${this.zoom}) translate(${this.panOffset.x / this.zoom}px, ${this.panOffset.y / this.zoom}px)`;
+            },
+
+            updateCanvasSize() {
+                const canvas = document.getElementById('canvas');
+                canvas.style.width = this.canvasWidth + 'px';
+                canvas.style.height = this.canvasHeight + 'px';
+                
+                const svg = document.getElementById('linksSvg');
+                svg.setAttribute('width', this.canvasWidth);
+                svg.setAttribute('height', this.canvasHeight);
+                svg.setAttribute('viewBox', `0 0 ${this.canvasWidth} ${this.canvasHeight}`);
             },
 
             changeBackground(value) {
@@ -1082,12 +1099,17 @@
             },
 
             addNode() {
+                const today = new Date();
+                const todayStr = today.toISOString().split('T')[0];
+                
                 const node = {
                     id: 'node_' + this.nextId++,
                     name: 'New Person',
                     gender: 'male',
                     alive: true,
                     age: 30,
+                    birthdate: todayStr,
+                    deathdate: '',
                     notes: '',
                     img: null,
                     linkStyle: 'curved',
@@ -1095,7 +1117,15 @@
                     y: 300 + Math.random() * 400
                 };
                 this.nodes.push(node);
+                
+                if (this.nodes.length % 10 === 0) {
+                    this.canvasWidth = Math.floor(this.canvasWidth * 1.1);
+                    this.canvasHeight = Math.floor(this.canvasHeight * 1.1);
+                    this.updateCanvasSize();
+                }
+                
                 this.render();
+                this.updatePeopleCounter();
                 this.saveData();
             },
 
@@ -1127,7 +1157,11 @@
 
                     const meta = document.createElement('div');
                     meta.className = 'node-meta';
-                    meta.textContent = `${node.gender} • ${node.alive ? 'Alive' : 'Deceased'}`;
+                    meta.textContent = `${node.gender} • ${node.alive ? 'Alive' : 'Deceased'} • Age: ${node.age}`;
+
+                    const birthInfo = document.createElement('div');
+                    birthInfo.className = 'node-meta';
+                    birthInfo.textContent = `Born: ${this.formatDate(node.birthdate)}`;
 
                     const notes = document.createElement('div');
                     notes.className = 'node-notes';
@@ -1167,6 +1201,7 @@
                     div.appendChild(avatar);
                     div.appendChild(name);
                     div.appendChild(meta);
+                    div.appendChild(birthInfo);
                     div.appendChild(notes);
                     div.appendChild(actions);
 
@@ -1199,10 +1234,10 @@
             },
 
             calculatePath(from, to, type) {
-                const x1 = from.x + 120;
-                const y1 = from.y + 80;
-                const x2 = to.x + 120;
-                const y2 = to.y + 80;
+                const x1 = from.x + 140;
+                const y1 = from.y + 100;
+                const x2 = to.x + 140;
+                const y2 = to.y + 100;
 
                 if (type === 'spouse') {
                     const cy = (y1 + y2) / 2;
@@ -1318,6 +1353,16 @@
                 this.links.push(link);
             },
 
+            toggleDeathdateField() {
+                const status = document.getElementById('inspStatus').value;
+                const deathdateGroup = document.getElementById('deathdateGroup');
+                if (status === 'deceased') {
+                    deathdateGroup.style.display = 'block';
+                } else {
+                    deathdateGroup.style.display = 'none';
+                }
+            },
+
             openInspector(nodeId) {
                 this.currentNode = this.nodes.find(n => n.id === nodeId);
                 if (!this.currentNode) return;
@@ -1326,9 +1371,12 @@
                 document.getElementById('inspGender').value = this.currentNode.gender;
                 document.getElementById('inspStatus').value = this.currentNode.alive ? 'alive' : 'deceased';
                 document.getElementById('inspAge').value = this.currentNode.age;
+                document.getElementById('inspBirthdate').value = this.currentNode.birthdate || '';
+                document.getElementById('inspDeathdate').value = this.currentNode.deathdate || '';
                 document.getElementById('inspNotes').value = this.currentNode.notes;
                 document.getElementById('inspLinkStyle').value = this.currentNode.linkStyle;
 
+                this.toggleDeathdateField();
                 this.renderLinksInInspector();
 
                 document.getElementById('inspector').style.display = 'block';
@@ -1390,6 +1438,8 @@
                 this.currentNode.gender = document.getElementById('inspGender').value;
                 this.currentNode.alive = document.getElementById('inspStatus').value === 'alive';
                 this.currentNode.age = parseInt(document.getElementById('inspAge').value);
+                this.currentNode.birthdate = document.getElementById('inspBirthdate').value;
+                this.currentNode.deathdate = document.getElementById('inspDeathdate').value;
                 this.currentNode.notes = document.getElementById('inspNotes').value;
                 this.currentNode.linkStyle = document.getElementById('inspLinkStyle').value;
 
@@ -1419,6 +1469,7 @@
                 this.nodes = this.nodes.filter(n => n.id !== nodeId);
                 this.links = this.links.filter(l => l.from !== nodeId && l.to !== nodeId);
                 this.render();
+                this.updatePeopleCounter();
                 this.saveData();
             },
 
@@ -1429,12 +1480,22 @@
                 if (node.img) {
                     avatar.innerHTML = `<img src="${node.img}">`;
                 } else {
-                    avatar.innerHTML = 'No Image';
+                    avatar.textContent = 'No Image';
                 }
 
                 document.getElementById('hoverName').textContent = node.name;
-                document.getElementById('hoverMeta').textContent = 
-                    `${node.gender} • ${node.alive ? 'Alive' : 'Deceased'} • Age: ${node.age}`;
+                document.getElementById('hoverAge').textContent = node.age;
+                document.getElementById('hoverBirthdate').textContent = this.formatDate(node.birthdate);
+                document.getElementById('hoverStatus').textContent = node.alive ? 'Alive' : 'Deceased';
+                
+                const deathdateRow = document.getElementById('hoverDeathdateRow');
+                if (!node.alive) {
+                    deathdateRow.style.display = 'block';
+                    document.getElementById('hoverDeathdate').textContent = this.formatDate(node.deathdate);
+                } else {
+                    deathdateRow.style.display = 'none';
+                }
+
                 document.getElementById('hoverNotes').textContent = node.notes || 'No notes';
 
                 card.style.display = 'block';
@@ -1455,7 +1516,9 @@
                 const data = {
                     nodes: this.nodes,
                     links: this.links,
-                    nextId: this.nextId
+                    nextId: this.nextId,
+                    canvasWidth: this.canvasWidth,
+                    canvasHeight: this.canvasHeight
                 };
                 localStorage.setItem('familyTreeData', JSON.stringify(data));
             },
@@ -1467,6 +1530,13 @@
                     this.nodes = data.nodes || [];
                     this.links = data.links || [];
                     this.nextId = data.nextId || 1;
+                    this.canvasWidth = data.canvasWidth || 4000;
+                    this.canvasHeight = data.canvasHeight || 3000;
+                    
+                    this.nodes.forEach(node => {
+                        if (!node.birthdate) node.birthdate = '';
+                        if (!node.deathdate) node.deathdate = '';
+                    });
                 }
             },
 
@@ -1494,6 +1564,7 @@
                         this.nodes = data.nodes || [];
                         this.links = data.links || [];
                         this.render();
+                        this.updatePeopleCounter();
                         this.saveData();
                         alert('Family tree imported successfully! 🌳');
                     } catch (err) {
@@ -1513,8 +1584,6 @@
         window.addEventListener('DOMContentLoaded', () => {
             app.init();
         });
-
-        
     </script>
 </body>
 </html>
