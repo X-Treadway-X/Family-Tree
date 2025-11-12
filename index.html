@@ -45,33 +45,33 @@
         .toolbar-brand {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 7px;
             margin-right: auto;
         }
 
         .toolbar-icon {
-            font-size: 40px;
+            font-size: 25px;
             filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5));
         }
 
         .toolbar-title {
-            font-size: 28px;
-            color: #d4af37;
+            font-size: 21px;
+            color: #deaf13;
             font-weight: bold;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            letter-spacing: 2px;
+            letter-spacing: 1px;
         }
 
         .people-counter {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 5px;
             padding: 10px 20px;
             background: rgba(0,0,0,0.4);
             border-radius: 10px;
             border: 2px solid #8b4513;
-            font-size: 18px;
-            color: #d4af37;
+            font-size: 15px;
+            color: #deaf13;
             font-weight: bold;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
         }
@@ -84,16 +84,21 @@
         .clock-display {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
+            gap: 3px;
+            padding: 7px 5px;
             background: rgba(0,0,0,0.4);
             border-radius: 10px;
             border: 2px solid #8b4513;
-            font-size: 16px;
-            color: #d4af37;
+            font-size: 15px;
+            color: #ffd60a;
             font-weight: bold;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            white-space: nowrap;         /* Keep date + time on one line */
+            overflow: hidden;            /* Hide overflow if too long */
+            text-overflow: ellipsis;     /* Show ... if text too wide */
+            max-width: 100%;             /* Ensure it doesn’t exceed container */
         }
+
 
         body.light-theme .clock-display {
             background: rgba(255,255,255,0.4);
@@ -121,7 +126,7 @@
         }
 
         .theme-selector label {
-            color: #d4af37;
+            color: #deaf13;
             font-size: 11px;
             font-weight: bold;
             text-transform: uppercase;
@@ -137,7 +142,7 @@
             border: 2px solid #8b4513;
             border-radius: 6px;
             background: rgba(0,0,0,0.6);
-            color: #d4af37;
+            color: #f2b818;
             font-family: Georgia, serif;
             font-weight: bold;
             cursor: pointer;
@@ -164,7 +169,7 @@
         }
 
         .zoom-controls label {
-            color: #d4af37;
+            color: #fecc2a;
             font-size: 11px;
             font-weight: bold;
             text-transform: uppercase;
@@ -186,7 +191,7 @@
             width: 36px;
             height: 36px;
             border: 2px solid #8b4513;
-            background: linear-gradient(135deg, #228b22 0%, #1a6b1a 100%);
+            background: linear-gradient(135deg, #1ecf1e 0%, #1a6b1a 100%);
             color: white;
             border-radius: 8px;
             cursor: pointer;
@@ -221,7 +226,7 @@
         }
 
         .btn {
-            padding: 14px 24px;
+            padding: 7px 20px;
             border: 2px solid transparent;
             border-radius: 10px;
             font-size: 15px;
@@ -888,10 +893,12 @@
                     <span class="hover-label">Status:</span> 
                     <span class="hover-value" id="hoverStatus"></span>
                 </div>
-                <div class="hover-info-row" id="hoverDeathdateRow" style="display:none">
+                <!-- <div class="hover-info-row" id="hoverDeathdateRow" style="display:none">
                     <span class="hover-label">Deathdate:</span> 
                     <span class="hover-value" id="hoverDeathdate"></span>
-                </div>
+                </div> -->
+
+
             </div>
 
         </div>
@@ -986,11 +993,19 @@
                     const hours = String(now.getHours()).padStart(2, '0');
                     const minutes = String(now.getMinutes()).padStart(2, '0');
                     const seconds = String(now.getSeconds()).padStart(2, '0');
-                    document.getElementById('clockTime').textContent = `${hours}:${minutes}:${seconds}`;
+
+                    const day = String(now.getDate()).padStart(2, '0');
+                    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                    const monthName = months[now.getMonth()];
+                    const year = now.getFullYear();
+
+                    document.getElementById('clockTime').textContent = `${monthName} ${day}, ${year} ${hours}:${minutes}:${seconds}`;
                 };
-                updateClock();
-                setInterval(updateClock, 1000);
+
+                updateClock(); // immediate update
+                setInterval(updateClock, 1000); // every second
             },
+
 
             updatePeopleCounter() {
                 document.getElementById('peopleCount').textContent = this.nodes.length;
@@ -1023,22 +1038,25 @@
                 ];
                 return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
             },
-            calculateAge(birthdateString) {
+            calculateAge(birthdateString, deathdateString = null, alive = true) {
                 const birthdate = this.parseDateLocal(birthdateString);
                 if (!birthdate) return 'Unknown';
 
-                const today = new Date();
-                let age = today.getFullYear() - birthdate.getFullYear();
-                const monthDiff = today.getMonth() - birthdate.getMonth();
-                const dayDiff = today.getDate() - birthdate.getDate();
+                // if dead, use deathdate, otherwise use today
+                const endDate = alive ? new Date() : this.parseDateLocal(deathdateString);
+                if (!endDate) return 'Unknown';
 
-                // Adjust if birthday hasn't happened yet this year
+                let age = endDate.getFullYear() - birthdate.getFullYear();
+                const monthDiff = endDate.getMonth() - birthdate.getMonth();
+                const dayDiff = endDate.getDate() - birthdate.getDate();
+
                 if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
                     age--;
                 }
 
                 return age;
             },
+
 
 
 
@@ -1188,7 +1206,7 @@
                     } else {
                         avatar.textContent = 'No Image';
                     }
-                    const age_by_datepicked = this.calculateAge(node.birthdate); // this is the age that is picked the birthdate section
+                    const age_by_datepicked = this.calculateAge(node.birthdate, node.deathdate, node.alive); // this is the age that is picked the birthdate section
 
                     const name = document.createElement('div');
                     name.className = 'node-name';
@@ -1513,33 +1531,49 @@
             },
 
             showHoverCard(node, e) {
-                const card = document.getElementById('hoverCard');
-                const avatar = document.getElementById('hoverAvatar');
-                
-                if (node.img) {
-                    avatar.innerHTML = `<img src="${node.img}">`;
-                } else {
-                    avatar.textContent = 'No Image';
-                }
-                const age_by_datepicked = this.calculateAge(node.birthdate); // this is the age that is picked the birthdate section
-                document.getElementById('hoverName').textContent = node.name;
-                document.getElementById('hoverAge').textContent = age_by_datepicked;
-                document.getElementById('hoverBirthdate').textContent = this.formatDate(node.birthdate);
-                document.getElementById('hoverStatus').textContent = node.alive ? 'Alive' : 'Deceased';
-                
-                const deathdateRow = document.getElementById('hoverDeathdateRow');
-                if (!node.alive) {
-                    deathdateRow.style.display = 'block';
-                    document.getElementById('hoverDeathdate').textContent = this.formatDate(node.deathdate);
-                } else {
-                    deathdateRow.style.display = 'none';
-                }
+            const card = document.getElementById('hoverCard');
+            const avatar = document.getElementById('hoverAvatar');
 
-                document.getElementById('hoverNotes').textContent = node.notes || 'No notes';
+            if (node.img) {
+                avatar.innerHTML = `<img src="${node.img}">`;
+            } else {
+                avatar.textContent = 'No Image';
+            }
 
-                card.style.display = 'block';
-                this.updateHoverCardPosition(e);
-            },
+            // Age calculation
+            const age_by_birthdate = this.calculateAge(node.birthdate);
+
+            // Age at death
+            let ageAtDeath = age_by_birthdate;
+            if (!node.alive && node.deathdate) {
+                const birth = this.parseDateLocal(node.birthdate);
+                const death = this.parseDateLocal(node.deathdate);
+                if (birth && death) {
+                    ageAtDeath = death.getFullYear() - birth.getFullYear() -
+                        (death.getMonth() < birth.getMonth() || 
+                        (death.getMonth() === birth.getMonth() && death.getDate() < birth.getDate()) ? 1 : 0);
+                }
+            }
+
+            document.getElementById('hoverName').textContent = node.name;
+
+            // Show different age info if deceased
+            if (node.alive) {
+                document.getElementById('hoverAge').textContent = age_by_birthdate;
+            } else {
+                document.getElementById('hoverAge').innerHTML = `${ageAtDeath} <span style="color:#ff6666">(would be ${age_by_birthdate} today)</span>`;
+            }
+
+            document.getElementById('hoverBirthdate').textContent = this.formatDate(node.birthdate);
+            document.getElementById('hoverStatus').textContent = node.alive ? 'Alive' : `Deceased (${this.formatDate(node.deathdate)})`;
+
+        
+
+            document.getElementById('hoverNotes').textContent = node.notes || 'No notes';
+
+            card.style.display = 'block';
+            this.updateHoverCardPosition(e);
+        },
 
             hideHoverCard() {
                 document.getElementById('hoverCard').style.display = 'none';
