@@ -996,13 +996,34 @@
                 document.getElementById('peopleCount').textContent = this.nodes.length;
             },
 
+            parseDateLocal(dateString) {
+                if (!dateString) return null;
+
+                // if format is yyyy-mm-dd (from <input type="date">), parse as local date
+                const match = dateString.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                if (match) {
+                    const y = parseInt(match[1], 10);
+                    const m = parseInt(match[2], 10) - 1;
+                    const d = parseInt(match[3], 10);
+                    return new Date(y, m, d); // local time, no timezone shift
+                }
+
+                // fallback for other formats
+                const parsed = new Date(dateString);
+                if (isNaN(parsed)) return null;
+                return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+            },
+
             formatDate(dateString) {
-                if (!dateString) return 'Not specified';
-                const date = new Date(dateString);
-                const months = ['January', 'February', 'March', 'April', 'May', 'June', 
-                               'July', 'August', 'September', 'October', 'November', 'December'];
+                const date = this.parseDateLocal(dateString);
+                if (!date) return 'Not specified';
+                const months = [
+                    'January','February','March','April','May','June',
+                    'July','August','September','October','November','December'
+                ];
                 return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
             },
+
 
             setupEventListeners() {
                 const workspace = document.getElementById('workspace');
