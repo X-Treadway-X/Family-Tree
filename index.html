@@ -789,6 +789,22 @@
             animation: pulse 2s infinite;
         }
 
+        #selectionRect {
+            position: absolute;
+            border: 2px dashed #69b6e2;
+            background: rgba(105, 182, 226, 0.2);
+            pointer-events: none;
+            display: none;
+            z-index: 1000;
+        }
+
+        .selected-node {
+            outline: 7px dashed #69b6e2;
+            outline-offset: -5px;
+        }
+
+
+
         /* .node::after {
             content: '🍂';
             position: absolute;
@@ -869,6 +885,8 @@
                 <svg id="linksSvg"></svg>
             </div>
         </div>
+        <div id="selectionRect"></div>
+
     </div>
 
     <div id="hoverCard">
@@ -976,6 +994,15 @@
             panOffset: {x: 0, y: 0},
             canvasWidth: 4000,
             canvasHeight: 3000,
+            
+            // selectedNodes: [],
+            // selectionStart: null,
+            // isSelecting: false,
+
+            multiDragMode: false,
+            selectedNodes: [],
+            dragOffsetMulti: null,
+
 
             init() {
                 this.loadData();
@@ -1095,7 +1122,16 @@
                 canvas.addEventListener('mousedown', this.onNodeMouseDown.bind(this));
                 document.addEventListener('mousemove', this.onNodeMouseMove.bind(this));
                 document.addEventListener('mouseup', this.onNodeMouseUp.bind(this));
-            },
+
+                document.addEventListener('keydown', (e) => {
+                if (e.shiftKey && e.key.toLowerCase() === 'd') {
+                    this.multiDragMode = !this.multiDragMode;
+                    if (!this.multiDragMode) this.selectedNodes = [];
+                    console.log('Multi-drag mode:', this.multiDragMode);
+                }
+            });
+
+                        },
 
             onWheel(e) {
                 e.preventDefault();
@@ -1313,42 +1349,66 @@
             },
 
             onNodeMouseDown(e) {
-                const nodeEl = e.target.closest('.node');
-                if (!nodeEl) return;
+            const nodeEl = e.target.closest('.node');
+            if (!nodeEl) return;
 
-                e.stopPropagation();
-                const nodeId = nodeEl.dataset.id;
+            e.stopPropagation();
+            const nodeId = nodeEl.dataset.id;
+            const node = this.nodes.find(n => n.id === nodeId);
 
-                if (this.linkingMode && this.linkingFrom) {
-                    this.completeLinking(nodeId);
-                    return;
+            if (this.multiDragMode) {
+                // Toggle node selection in multi-drag mode
+                if (this.selectedNodes.includes(node)) {
+                    this.selectedNodes = this.selectedNodes.filter(n => n !== node);
+                    nodeEl.classList.remove('selected-node');
+                } else {
+                    this.selectedNodes.push(node);
+                    nodeEl.classList.add('selected-node');
                 }
 
-                this.draggedNode = this.nodes.find(n => n.id === nodeId);
-                const rect = nodeEl.getBoundingClientRect();
+                if (this.selectedNodes.length > 0) {
+                    const canvasRect = document.getElementById('canvas').getBoundingClientRect();
+                    this.dragOffsetMulti = this.selectedNodes.map(n => ({
+                        node: n,
+                        offsetX: (e.clientX - canvasRect.left) / this.zoom - n.x,
+                        offsetY: (e.clientY - canvasRect.top) / this.zoom - n.y
+                    }));
+                }
+
+            } else {
+                // Single-node drag
+                this.draggedNode = node;
                 const canvasRect = document.getElementById('canvas').getBoundingClientRect();
-                
                 this.dragOffset = {
-                    x: (e.clientX - canvasRect.left) / this.zoom - this.draggedNode.x,
-                    y: (e.clientY - canvasRect.top) / this.zoom - this.draggedNode.y
+                    x: (e.clientX - canvasRect.left) / this.zoom - node.x,
+                    y: (e.clientY - canvasRect.top) / this.zoom - node.y
                 };
-            },
+            }
+        },
 
             onNodeMouseMove(e) {
-                if (this.draggedNode) {
-                    const canvasRect = document.getElementById('canvas').getBoundingClientRect();
-                    this.draggedNode.x = (e.clientX - canvasRect.left) / this.zoom - this.dragOffset.x;
-                    this.draggedNode.y = (e.clientY - canvasRect.top) / this.zoom - this.dragOffset.y;
-                    this.render();
-                }
-            },
+            const canvasRect = document.getElementById('canvas').getBoundingClientRect();
+
+            if (this.multiDragMode && this.selectedNodes.length > 0) {
+                this.dragOffsetMulti.forEach(item => {
+                    item.node.x = (e.clientX - canvasRect.left) / this.zoom - item.offsetX;
+                    item.node.y = (e.clientY - canvasRect.top) / this.zoom - item.offsetY;
+                });
+                this.render();
+            } else if (this.draggedNode) {
+                this.draggedNode.x = (e.clientX - canvasRect.left) / this.zoom - this.dragOffset.x;
+                this.draggedNode.y = (e.clientY - canvasRect.top) / this.zoom - this.dragOffset.y;
+                this.render();
+            }
+        },
 
             onNodeMouseUp() {
-                if (this.draggedNode) {
-                    this.saveData();
-                }
-                this.draggedNode = null;
-            },
+            if (this.draggedNode || (this.multiDragMode && this.selectedNodes.length > 0)) {
+                this.saveData();
+            }
+            this.draggedNode = null;
+            this.dragOffsetMulti = null;
+        },
 
             startLinking(nodeId) {
                 this.linkingMode = true;
