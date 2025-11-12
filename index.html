@@ -1356,8 +1356,15 @@
             const nodeId = nodeEl.dataset.id;
             const node = this.nodes.find(n => n.id === nodeId);
 
+            // Linking mode always has priority
+            if (this.linkingMode && this.linkingFrom) {
+                this.completeLinking(nodeId);
+                return;
+            }
+
+            // Multi-drag mode
             if (this.multiDragMode) {
-                // Toggle node selection in multi-drag mode
+                // Toggle node selection
                 if (this.selectedNodes.includes(node)) {
                     this.selectedNodes = this.selectedNodes.filter(n => n !== node);
                     nodeEl.classList.remove('selected-node');
@@ -1374,16 +1381,16 @@
                         offsetY: (e.clientY - canvasRect.top) / this.zoom - n.y
                     }));
                 }
-
-            } else {
-                // Single-node drag
-                this.draggedNode = node;
-                const canvasRect = document.getElementById('canvas').getBoundingClientRect();
-                this.dragOffset = {
-                    x: (e.clientX - canvasRect.left) / this.zoom - node.x,
-                    y: (e.clientY - canvasRect.top) / this.zoom - node.y
-                };
+                return; // exit so single-node drag doesn’t happen
             }
+
+            // Normal single-node drag
+            this.draggedNode = node;
+            const canvasRect = document.getElementById('canvas').getBoundingClientRect();
+            this.dragOffset = {
+                x: (e.clientX - canvasRect.left) / this.zoom - node.x,
+                y: (e.clientY - canvasRect.top) / this.zoom - node.y
+            };
         },
 
             onNodeMouseMove(e) {
