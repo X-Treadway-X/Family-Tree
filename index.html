@@ -1023,6 +1023,23 @@
                 ];
                 return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
             },
+            calculateAge(birthdateString) {
+                const birthdate = this.parseDateLocal(birthdateString);
+                if (!birthdate) return 'Unknown';
+
+                const today = new Date();
+                let age = today.getFullYear() - birthdate.getFullYear();
+                const monthDiff = today.getMonth() - birthdate.getMonth();
+                const dayDiff = today.getDate() - birthdate.getDate();
+
+                // Adjust if birthday hasn't happened yet this year
+                if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+                    age--;
+                }
+
+                return age;
+            },
+
 
 
             setupEventListeners() {
@@ -1171,6 +1188,7 @@
                     } else {
                         avatar.textContent = 'No Image';
                     }
+                    const age_by_datepicked = this.calculateAge(node.birthdate); // this is the age that is picked the birthdate section
 
                     const name = document.createElement('div');
                     name.className = 'node-name';
@@ -1178,7 +1196,7 @@
 
                     const meta = document.createElement('div');
                     meta.className = 'node-meta';
-                    meta.textContent = `${node.gender} • ${node.alive ? 'Alive' : 'Deceased'} • Age: ${node.age}`;
+                    meta.textContent = `${node.gender} • ${node.alive ? 'Alive' : 'Deceased'} • Age: ${age_by_datepicked}`;
 
                     const birthInfo = document.createElement('div');
                     birthInfo.className = 'node-meta';
@@ -1503,9 +1521,9 @@
                 } else {
                     avatar.textContent = 'No Image';
                 }
-
+                const age_by_datepicked = this.calculateAge(node.birthdate); // this is the age that is picked the birthdate section
                 document.getElementById('hoverName').textContent = node.name;
-                document.getElementById('hoverAge').textContent = node.age;
+                document.getElementById('hoverAge').textContent = age_by_datepicked;
                 document.getElementById('hoverBirthdate').textContent = this.formatDate(node.birthdate);
                 document.getElementById('hoverStatus').textContent = node.alive ? 'Alive' : 'Deceased';
                 
